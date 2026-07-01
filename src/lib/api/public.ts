@@ -12,8 +12,8 @@ export async function getPublicResume(
   slug: string,
 ): Promise<PublicResumeResponse | null> {
   const res = await fetch(`${baseURL}/public/${encodeURIComponent(slug)}`, {
-    // Public portfolio should reflect recent edits; revalidate frequently.
-    next: { revalidate: 30 },
+    // Always fresh so profile/inventory edits appear immediately.
+    cache: "no-store",
   });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`Failed to load resume: ${res.status}`);

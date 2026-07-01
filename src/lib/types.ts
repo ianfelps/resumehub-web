@@ -147,12 +147,16 @@ export interface CourseResponse extends CourseRequest {
 
 // ---- Profiles ----
 
+export type PortfolioTheme = "dark" | "light";
+
 export interface ProfileRequest {
   name: string;
   slug?: string | null;
   headline?: string | null;
   summary?: string | null;
   isPublic: boolean;
+  theme?: PortfolioTheme | null;
+  accentColor?: string | null;
 }
 
 export interface ProfileResponse {
@@ -162,6 +166,8 @@ export interface ProfileResponse {
   headline?: string | null;
   summary?: string | null;
   isPublic: boolean;
+  theme: PortfolioTheme;
+  accentColor: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -204,6 +210,8 @@ export interface PublicOwner {
 export interface PublicResumeResponse {
   name: string;
   summary?: string | null;
+  theme: PortfolioTheme;
+  accentColor: string;
   owner: PublicOwner;
   experiences: ExperienceResponse[];
   projects: ProjectResponse[];
