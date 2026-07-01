@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+/*
+  Design tokens lifted from the Claude Design "ResumeHub Console" mockup.
+  Dark is the default theme; `[data-theme="light"]` overrides it. The active
+  theme is set on <html> by an inline script in the root layout (no flash).
+*/
+:root,
+[data-theme="dark"] {
+  --bg: #0e0f12;
+  --bg2: #15171c;
+  --bg3: #1c1f26;
+  --border: #23262e;
+  --text: #e8ebf1;
+  --text2: #838b98;
+  --text3: #6f7785;
+  --accent: #5b8cff;
+  --accent-soft: rgba(91, 140, 255, 0.16);
+  --accent-text: #b9caff;
+  --pos: #28c840;
+  --pos-soft: rgba(40, 200, 64, 0.16);
+  --warn: #febc2e;
+  --warn-soft: rgba(254, 188, 46, 0.16);
+  --danger: #e0596b;
+  --shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] {
+  --bg: #f6f7f9;
+  --bg2: #ffffff;
+  --bg3: #eef1f5;
+  --border: #e2e6ec;
+  --text: #15171c;
+  --text2: #5b6573;
+  --text3: #828b99;
+  --accent: #2f5fff;
+  --accent-soft: rgba(47, 95, 255, 0.1);
+  --accent-text: #1d44c7;
+  --pos: #1a9c3a;
+  --pos-soft: rgba(26, 156, 58, 0.12);
+  --warn: #b7791f;
+  --warn-soft: rgba(183, 121, 31, 0.12);
+  --danger: #d23f54;
+  --shadow: 0 30px 70px rgba(20, 30, 60, 0.12);
+}
+
+/* Expose tokens to Tailwind v4 utilities (bg-bg2, text-text2, border-border…). */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg2: var(--bg2);
+  --color-bg3: var(--bg3);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text2: var(--text2);
+  --color-text3: var(--text3);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-text: var(--accent-text);
+  --color-pos: var(--pos);
+  --color-pos-soft: var(--pos-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Keep the anchor reset in @layer base so utility classes (colors, underline)
+   still win over it — an unlayered `a {}` rule would override all utilities. */
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+::selection {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Thin themed scrollbars to match the console aesthetic. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 6px;
+}
+
+@keyframes rh-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.rh-skeleton {
+  background: var(--bg3);
+  border-radius: 8px;
+  animation: rh-pulse 1.4s ease-in-out infinite;
+}
