@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Modal, ModalFooter, ModalHeader } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Button } from "@/components/ui/Button";
 import { InitialsTile } from "@/components/ui/Misc";
 import { getErrorMessage } from "@/lib/api/client";
@@ -34,6 +35,7 @@ export function ItemFormModal<K extends InventoryKind>({
   const update = useUpdateInventory(kind);
   const remove = useRemoveInventory(kind);
   const [error, setError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const isEditing = Boolean(item);
   const busy = create.isPending || update.isPending || remove.isPending;
@@ -54,12 +56,13 @@ export function ItemFormModal<K extends InventoryKind>({
 
   const handleDelete = async () => {
     if (!item) return;
-    if (!window.confirm("Excluir este item do cofre?")) return;
     setError(null);
     try {
       await remove.mutateAsync(item.id);
+      setConfirmDelete(false);
       onClose();
     } catch (err) {
+      setConfirmDelete(false);
       setError(getErrorMessage(err));
     }
   };
@@ -67,6 +70,7 @@ export function ItemFormModal<K extends InventoryKind>({
   const Form = meta.Form;
 
   return (
+    <>
     <Modal open={open} onClose={onClose} labelledBy="modal-title">
       <ModalHeader
         title={`${isEditing ? "Editar" : "Nova"} ${meta.singular}`}
@@ -86,7 +90,7 @@ export function ItemFormModal<K extends InventoryKind>({
         {isEditing ? (
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={() => setConfirmDelete(true)}
             disabled={busy}
             className="text-[12.5px] font-medium text-danger hover:underline disabled:opacity-50"
           >
@@ -105,5 +109,17 @@ export function ItemFormModal<K extends InventoryKind>({
         </div>
       </ModalFooter>
     </Modal>
+
+    <ConfirmDialog
+      open={confirmDelete}
+      danger
+      title="Excluir item"
+      message="Excluir este item do cofre? Ele será removido de todos os perfis que o utilizam."
+      confirmLabel="Excluir"
+      busy={remove.isPending}
+      onCancel={() => setConfirmDelete(false)}
+      onConfirm={handleDelete}
+    />
+    </>
   );
 }

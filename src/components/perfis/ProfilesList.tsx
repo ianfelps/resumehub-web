@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { Card } from "@/components/ui/Card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState, Skeleton } from "@/components/ui/Misc";
 import { ExternalIcon } from "@/components/ui/icons";
@@ -13,6 +15,9 @@ import { formatLongDate } from "@/lib/format";
 export function ProfilesList({ publicOnly = false }: { publicOnly?: boolean }) {
   const { data, isLoading } = useProfiles();
   const remove = useRemoveProfile();
+  const [toDelete, setToDelete] = useState<{ id: string; name: string } | null>(
+    null,
+  );
 
   const profiles = (data ?? []).filter((p) => (publicOnly ? p.isPublic : true));
 
@@ -96,11 +101,7 @@ export function ProfilesList({ publicOnly = false }: { publicOnly?: boolean }) {
                 <div className="flex-1" />
                 <button
                   type="button"
-                  onClick={() => {
-                    if (window.confirm(`Excluir o perfil "${p.name}"?`)) {
-                      remove.mutate(p.id);
-                    }
-                  }}
+                  onClick={() => setToDelete({ id: p.id, name: p.name })}
                   className="text-text2 hover:text-danger"
                 >
                   Excluir
@@ -110,6 +111,24 @@ export function ProfilesList({ publicOnly = false }: { publicOnly?: boolean }) {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={toDelete !== null}
+        danger
+        title="Excluir perfil"
+        message={
+          toDelete
+            ? `Tem certeza que deseja excluir o perfil "${toDelete.name}"? Esta ação não pode ser desfeita.`
+            : undefined
+        }
+        confirmLabel="Excluir"
+        busy={remove.isPending}
+        onCancel={() => setToDelete(null)}
+        onConfirm={() => {
+          if (!toDelete) return;
+          remove.mutate(toDelete.id, { onSettled: () => setToDelete(null) });
+        }}
+      />
     </PageContainer>
   );
 }

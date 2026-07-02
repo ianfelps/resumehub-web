@@ -55,6 +55,21 @@ npm run build      # build de produção (Turbopack) + checagem de tipos
 npm run lint       # ESLint (flat config)
 ```
 
+## Deploy (Vercel)
+
+O repositório já está pronto para a Vercel (Next.js detectado automaticamente;
+`vercel.json` fixa o framework e a região `pdx1` — Portland/Oregon, colada na API
+no Render para o fetch server-side de `/p/[slug]`).
+
+1. **Vercel → New Project** apontando para `github.com/ianfelps/resumehub-web`.
+   Root Directory = raiz do repo (é o próprio app Next.js).
+2. **Environment Variables** → defina `NEXT_PUBLIC_API_BASE_URL` com a URL da API
+   publicada, incluindo `/api` (ex.: `https://resumehub-api.onrender.com/api`).
+   Como é `NEXT_PUBLIC_*`, é embutida no build — refaça o deploy ao alterar.
+3. Na **API** (Render), aponte `Cors__WebOrigin` para a origem da Vercel
+   (ex.: `https://resumehub.vercel.app`) senão as chamadas do browser tomam CORS.
+4. Build: `next build` · Output: padrão do Next. Sem ajustes extras.
+
 ## Fluxo end-to-end
 
 1. `/register` cria a conta e já autentica (tokens em localStorage).
