@@ -9,9 +9,11 @@ import { AccountProfileForm } from "@/components/settings/AccountProfileForm";
 import { ChangePasswordForm } from "@/components/settings/ChangePasswordForm";
 import { DeleteAccountForm } from "@/components/settings/DeleteAccountForm";
 import { useAuth } from "@/lib/auth/auth-context";
+import { useTour } from "@/lib/tour/tour-context";
 
 export default function ConfiguracoesPage() {
   const { logout } = useAuth();
+  const { start: startTour } = useTour();
 
   return (
     <PageContainer className="max-w-[1280px]">
@@ -21,7 +23,9 @@ export default function ConfiguracoesPage() {
       </p>
 
       <div className="grid items-start gap-4 lg:grid-cols-[1.5fr_1fr]">
-        <AccountProfileForm />
+        <div data-tour="config-form">
+          <AccountProfileForm />
+        </div>
 
         <div className="flex flex-col gap-4">
           <ChangePasswordForm />
@@ -32,6 +36,18 @@ export default function ConfiguracoesPage() {
               <p className="text-[12.5px] text-text2">Tema claro ou escuro.</p>
             </div>
             <ThemeToggle />
+          </Card>
+
+          <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
+            <div>
+              <SectionLabel className="mb-1">TUTORIAL</SectionLabel>
+              <p className="text-[12.5px] text-text2">
+                Rever o tour guiado pelas telas.
+              </p>
+            </div>
+            <Button variant="secondary" onClick={startTour}>
+              Rever tutorial
+            </Button>
           </Card>
 
           <Card className="flex flex-wrap items-center justify-between gap-3 p-5">

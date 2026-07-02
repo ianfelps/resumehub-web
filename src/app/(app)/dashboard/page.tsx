@@ -30,7 +30,7 @@ export default function DashboardPage() {
         Seu cofre alimenta cada perfil. Cadastre uma vez, reutilize sempre.
       </p>
 
-      <div className="mb-7">
+      <div className="mb-7" data-tour="dash-stats">
         <StatCards />
       </div>
 

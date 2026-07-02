@@ -35,7 +35,7 @@ export function ProfilesList({ publicOnly = false }: { publicOnly?: boolean }) {
           </p>
         </div>
         <div className="flex-1" />
-        {!publicOnly ? <NewProfileButton /> : null}
+        {!publicOnly ? <NewProfileButton data-tour="perfis-new" /> : null}
       </div>
 
       {isLoading ? (

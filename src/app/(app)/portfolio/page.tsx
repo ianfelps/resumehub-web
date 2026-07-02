@@ -1,5 +1,9 @@
 import { ProfilesList } from "@/components/perfis/ProfilesList";
 
 export default function PortfolioPage() {
-  return <ProfilesList publicOnly />;
+  return (
+    <div data-tour="portfolio-list">
+      <ProfilesList publicOnly />
+    </div>
+  );
 }

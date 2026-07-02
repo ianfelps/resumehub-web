@@ -6,6 +6,8 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { TourProvider } from "@/lib/tour/tour-context";
+import { TourOverlay } from "@/components/tour/TourOverlay";
 
 /**
  * Client-side auth guard + chrome for the authenticated area. Tokens live in
@@ -33,13 +35,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">
-        <Topbar />
-        <main className="min-w-0 flex-1">{children}</main>
+    <TourProvider>
+      <div className="flex min-h-screen">
+        <Sidebar />
+        <div className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">
+          <Topbar />
+          <main className="min-w-0 flex-1">{children}</main>
+        </div>
+        <MobileNav />
       </div>
-      <MobileNav />
-    </div>
+      <TourOverlay />
+    </TourProvider>
   );
 }
