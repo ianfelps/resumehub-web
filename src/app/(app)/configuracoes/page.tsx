@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LogoutIcon } from "@/components/ui/icons";
 import { AccountProfileForm } from "@/components/settings/AccountProfileForm";
 import { ChangePasswordForm } from "@/components/settings/ChangePasswordForm";
+import { DeleteAccountForm } from "@/components/settings/DeleteAccountForm";
 import { useAuth } from "@/lib/auth/auth-context";
 
 export default function ConfiguracoesPage() {
@@ -43,6 +44,8 @@ export default function ConfiguracoesPage() {
               Sair
             </Button>
           </Card>
+
+          <DeleteAccountForm />
         </div>
       </div>
     </PageContainer>

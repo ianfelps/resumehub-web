@@ -326,8 +326,8 @@ export function LandingPage() {
             </div>
             <div className="flex flex-col gap-[9px] rounded-xl border border-border bg-bg3 p-5">
               {[
-                { tag: "NU", title: "Front-end · Nubank", date: "2022 — atual" },
-                { tag: "ST", title: "Web · Stone", date: "2019 — 2022" },
+                { tag: "NU", title: "Front-end · Empresa X", date: "2022 — atual" },
+                { tag: "ST", title: "Web · Empresa Y", date: "2019 — 2022" },
               ].map((e) => (
                 <div key={e.tag} className="flex items-center gap-[11px] rounded-[9px] border border-border bg-bg2 px-[13px] py-[11px]">
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-bg3 font-mono text-[11px] font-semibold text-text2">{e.tag}</span>
@@ -403,10 +403,10 @@ export function LandingPage() {
                 <div className="mt-[5px] font-mono text-[8px] text-[#6b7280]">marina@email.com · são paulo</div>
                 <div className="my-3 h-px bg-[#e6e8ec]" />
                 <div className="text-[8px] font-bold tracking-[0.1em] text-[#2f5fff]">EXPERIÊNCIA</div>
-                <div className="mt-[7px] text-[9.5px] font-bold text-[#101113]">Front-end · Nubank</div>
+                <div className="mt-[7px] text-[9.5px] font-bold text-[#101113]">Front-end · Empresa X</div>
                 <div className="mt-[5px] h-[3px] w-full rounded-sm bg-[#eceef2]" />
                 <div className="mt-1 h-[3px] w-[90%] rounded-sm bg-[#eceef2]" />
-                <div className="mt-[9px] text-[9.5px] font-bold text-[#101113]">Web · Stone</div>
+                <div className="mt-[9px] text-[9.5px] font-bold text-[#101113]">Web · Empresa Y</div>
                 <div className="mt-[5px] h-[3px] w-full rounded-sm bg-[#eceef2]" />
                 <div className="mt-[11px] text-[8px] font-bold tracking-[0.1em] text-[#2f5fff]">HABILIDADES</div>
                 <div className="mt-1.5 flex flex-wrap gap-1">

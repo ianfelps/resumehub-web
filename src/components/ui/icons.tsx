@@ -2,6 +2,7 @@
 
 import {
   BarChart3,
+  Check,
   ExternalLink,
   Eye,
   EyeOff,
@@ -38,3 +39,4 @@ export const MenuIcon = icon(Menu);
 export const ExternalIcon = icon(ExternalLink);
 export const EyeIcon = icon(Eye);
 export const EyeOffIcon = icon(EyeOff);
+export const CheckIcon = icon(Check);

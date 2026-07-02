@@ -2,6 +2,7 @@ import { api } from "@/lib/api/client";
 import type {
   AccountResponse,
   ChangePasswordRequest,
+  DeleteAccountRequest,
   UpdateAccountRequest,
 } from "@/lib/types";
 
@@ -16,5 +17,8 @@ export const accountApi = {
   },
   changePassword: async (body: ChangePasswordRequest): Promise<void> => {
     await api.put("/account/password", body);
+  },
+  remove: async (body: DeleteAccountRequest): Promise<void> => {
+    await api.delete("/account", { data: body });
   },
 };

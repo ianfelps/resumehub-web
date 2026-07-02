@@ -11,6 +11,7 @@ import { profilesApi } from "@/lib/api/profiles";
 import { queryKeys } from "@/lib/query/query-keys";
 import type {
   ChangePasswordRequest,
+  DeleteAccountRequest,
   InventoryKind,
   InventoryShapes,
   ProfileItemsRequest,
@@ -139,6 +140,14 @@ export function useUpdateAccount() {
 export function useChangePassword() {
   return useMutation({
     mutationFn: (body: ChangePasswordRequest) => accountApi.changePassword(body),
+  });
+}
+
+export function useDeleteAccount() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: DeleteAccountRequest) => accountApi.remove(body),
+    onSuccess: () => qc.clear(),
   });
 }
 
