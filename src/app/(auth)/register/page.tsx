@@ -106,6 +106,26 @@ export default function RegisterPage() {
         <Button type="submit" disabled={isSubmitting} className="mt-1 w-full">
           {isSubmitting ? "Criando…" : "Criar conta"}
         </Button>
+
+        <p className="text-center text-[12px] leading-[1.6] text-text3">
+          Ao criar uma conta, você concorda com os{" "}
+          <Link
+            href="/termos"
+            target="_blank"
+            className="text-accent-text hover:underline"
+          >
+            Termos de Uso
+          </Link>{" "}
+          e a{" "}
+          <Link
+            href="/privacidade"
+            target="_blank"
+            className="text-accent-text hover:underline"
+          >
+            Política de Privacidade
+          </Link>
+          .
+        </p>
       </form>
 
       <p className="mt-5 text-center text-[13px] text-text2">

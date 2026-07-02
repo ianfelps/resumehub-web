@@ -108,6 +108,24 @@ export function PortfolioView({ data }: { data: PublicResumeResponse }) {
                 {owner.location}
               </span>
             ) : null}
+            {owner.phoneNumber ? (
+              <a
+                href={`tel:${owner.phoneNumber.replace(/[^\d+]/g, "")}`}
+                className="rounded-full px-3 py-1.5 text-[12.5px] transition-opacity hover:opacity-80"
+                style={{ background: c.surface, border: `1px solid ${c.border}`, color: c.muted }}
+              >
+                {owner.phoneNumber}
+              </a>
+            ) : null}
+            {owner.email ? (
+              <a
+                href={`mailto:${owner.email}`}
+                className="rounded-full px-3 py-1.5 text-[12.5px] transition-opacity hover:opacity-80"
+                style={{ background: c.surface, border: `1px solid ${c.border}`, color: c.muted }}
+              >
+                {owner.email}
+              </a>
+            ) : null}
             {links.map((l) => (
               <a
                 key={l.url}
@@ -324,7 +342,15 @@ export function PortfolioView({ data }: { data: PublicResumeResponse }) {
           style={{ borderColor: c.border, color: c.muted }}
         >
           <span className="font-mono">{displayName}</span> · feito com{" "}
-          <span style={{ color: accent }}>ResumeHub</span>
+          <a
+            href="/"
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium transition-opacity hover:opacity-80"
+            style={{ color: accent }}
+          >
+            ResumeHub
+          </a>
         </footer>
       </div>
     </div>

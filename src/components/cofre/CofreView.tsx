@@ -7,7 +7,9 @@ import { EmptyState, InitialsTile, Skeleton } from "@/components/ui/Misc";
 import { PlusIcon } from "@/components/ui/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { initials } from "@/lib/format";
+import { skillCategoryLabels } from "@/lib/enums";
 import { useInventory } from "@/lib/query/hooks";
+import { SkillCategory } from "@/lib/types";
 import type { InventoryKind, InventoryShapes } from "@/lib/types";
 import { inventoryMeta } from "@/components/cofre/forms";
 import { describeItem } from "@/components/cofre/describe";
@@ -21,12 +23,15 @@ function ItemRow({
   kind,
   item,
   onEdit,
+  hideSubtitle,
 }: {
   kind: InventoryKind;
   item: AnyItem;
   onEdit: () => void;
+  hideSubtitle?: boolean;
 }) {
-  const { title, subtitle, meta } = describeItem(kind, item);
+  const { title, subtitle: rawSubtitle, meta } = describeItem(kind, item);
+  const subtitle = hideSubtitle ? undefined : rawSubtitle;
   return (
     <button
       type="button"
@@ -79,6 +84,47 @@ function ProjectCard({
         </p>
       ) : null}
     </button>
+  );
+}
+
+const SKILL_CATEGORY_ORDER = [
+  SkillCategory.Technology,
+  SkillCategory.Tool,
+  SkillCategory.SoftSkill,
+] as const;
+
+function SkillGroups({
+  items,
+  onEdit,
+}: {
+  items: InventoryShapes["skills"]["response"][];
+  onEdit: (item: InventoryShapes["skills"]["response"]) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-6">
+      {SKILL_CATEGORY_ORDER.map((category) => {
+        const group = items
+          .filter((it) => it.category === category)
+          .sort((a, b) => b.level - a.level);
+        if (group.length === 0) return null;
+        return (
+          <section key={category} className="flex flex-col gap-2">
+            <h2 className="font-mono text-[11px] uppercase tracking-wider text-text2">
+              {skillCategoryLabels[category]} · {group.length}
+            </h2>
+            {group.map((it) => (
+              <ItemRow
+                key={it.id}
+                kind="skills"
+                item={it}
+                onEdit={() => onEdit(it)}
+                hideSubtitle
+              />
+            ))}
+          </section>
+        );
+      })}
+    </div>
   );
 }
 
@@ -167,6 +213,11 @@ export function CofreView() {
             <ProjectCard key={it.id} item={it} onEdit={() => openEdit(it)} />
           ))}
         </div>
+      ) : active === "skills" ? (
+        <SkillGroups
+          items={items as InventoryShapes["skills"]["response"][]}
+          onEdit={openEdit}
+        />
       ) : (
         <div className="flex flex-col gap-2">
           {items.map((it) => (

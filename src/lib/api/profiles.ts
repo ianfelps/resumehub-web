@@ -33,4 +33,11 @@ export const profilesApi = {
   setItems: async (id: string, body: ProfileItemsRequest): Promise<void> => {
     await api.put(`/profiles/${id}/items`, body);
   },
+  getPdf: async (id: string): Promise<{ blob: Blob; pageCount: number }> => {
+    const { data, headers } = await api.get<Blob>(`/profiles/${id}/pdf`, {
+      responseType: "blob",
+    });
+    const pageCount = Number(headers["x-page-count"]) || 0;
+    return { blob: data, pageCount };
+  },
 };

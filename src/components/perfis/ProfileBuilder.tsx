@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { SectionLabel } from "@/components/ui/Card";
+import { Modal, ModalFooter, ModalHeader } from "@/components/ui/Modal";
 import { Toggle } from "@/components/ui/Toggle";
 import { Field, Input, Textarea } from "@/components/ui/Input";
 import { Skeleton } from "@/components/ui/Misc";
@@ -12,8 +13,11 @@ import { ExternalIcon } from "@/components/ui/icons";
 import { PortfolioView } from "@/components/portfolio/PortfolioView";
 import { describeItem } from "@/components/cofre/describe";
 import { inventoryMeta } from "@/components/cofre/forms";
+import { skillCategoryLabels } from "@/lib/enums";
+import { SkillCategory } from "@/lib/types";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getErrorMessage } from "@/lib/api/client";
+import { profilesApi } from "@/lib/api/profiles";
 import {
   useAccount,
   useInventory,
@@ -40,6 +44,11 @@ const ACCENT_PRESETS = [
 ];
 
 const KINDS = Object.keys(inventoryMeta) as InventoryKind[];
+const SKILL_CATEGORY_ORDER = [
+  SkillCategory.Technology,
+  SkillCategory.Tool,
+  SkillCategory.SoftSkill,
+] as const;
 type Selection = Record<InventoryKind, string[]>;
 type AnyItem = InventoryShapes[InventoryKind]["response"];
 
@@ -83,6 +92,10 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
   const [initialized, setInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [pdfOpen, setPdfOpen] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfPages, setPdfPages] = useState<number>(0);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const slugFocused = useRef(false);
 
   // Seed editable state from the loaded profile and its saved item selection
@@ -106,6 +119,12 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [initialized, profileQuery.data, inventoryLoaded, itemsQuery.data]);
 
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    };
+  }, [pdfUrl]);
+
   const toggle = (kind: InventoryKind, id: string) => {
     setSelection((prev) => {
       const has = prev[kind].includes(id);
@@ -116,6 +135,12 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
           : [...prev[kind], id],
       };
     });
+  };
+
+  // Mark/unmark every item of a category at once. Marking uses the inventory
+  // order so display order stays predictable.
+  const toggleAll = (kind: InventoryKind, ids: string[], allIncluded: boolean) => {
+    setSelection((prev) => ({ ...prev, [kind]: allIncluded ? [] : ids }));
   };
 
   // Plain locals keep the memo dependency list compiler-friendly.
@@ -146,6 +171,8 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
       fullName: account?.fullName ?? user?.fullName ?? user?.email ?? null,
       headline: headline || account?.headline || null,
       location: account?.location ?? null,
+      email: account?.showEmailOnResume ? account?.email ?? null : null,
+      phoneNumber: account?.phoneNumber ?? null,
       linkedInUrl: account?.linkedInUrl ?? null,
       gitHubUrl: account?.gitHubUrl ?? null,
       websiteUrl: account?.websiteUrl ?? null,
@@ -192,6 +219,25 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
       setSavedAt(new Date().toLocaleTimeString("pt-BR").slice(0, 5));
     } catch (err) {
       setError(getErrorMessage(err));
+    }
+  };
+
+  const previewPdf = async () => {
+    setError(null);
+    setPdfLoading(true);
+    try {
+      const { blob, pageCount } = await profilesApi.getPdf(profileId);
+      const nextUrl = URL.createObjectURL(blob);
+      setPdfUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return nextUrl;
+      });
+      setPdfPages(pageCount);
+      setPdfOpen(true);
+    } catch (err) {
+      setError(getErrorMessage(err, "Nao foi possivel gerar o PDF."));
+    } finally {
+      setPdfLoading(false);
     }
   };
 
@@ -252,6 +298,13 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
         >
           {isPublic ? "Despublicar" : "Publicar"}
         </Button>
+        <Button
+          variant="secondary"
+          onClick={previewPdf}
+          disabled={pdfLoading}
+        >
+          {pdfLoading ? "Gerando PDF..." : "Gerar PDF"}
+        </Button>
         <Button onClick={() => save()} disabled={busy}>
           {busy ? "Salvando…" : "Salvar"}
         </Button>
@@ -278,7 +331,9 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
               </Field>
               <Field label="Link público (slug)">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-mono text-[12.5px] text-text3">/p/</span>
+                  <span className="flex-none whitespace-nowrap font-mono text-[12.5px] text-text3">
+                    /p/
+                  </span>
                   <Input
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
@@ -362,23 +417,63 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
             const items = (queries[kind].data ?? []) as AnyItem[];
             if (items.length === 0) return null;
             const included = selection[kind];
+            const allIds = items.map((i) => i.id);
+            const allIncluded = included.length === items.length;
             return (
               <div key={kind} className="mb-5">
-                <SectionLabel className="mb-2">
-                  {inventoryMeta[kind].plural.toUpperCase()} ·{" "}
-                  {included.length} DE {items.length}
-                </SectionLabel>
-                <div className="flex flex-col gap-2">
-                  {items.map((item) => (
-                    <ToggleRow
-                      key={item.id}
-                      kind={kind}
-                      item={item}
-                      included={included.includes(item.id)}
-                      onToggle={() => toggle(kind, item.id)}
-                    />
-                  ))}
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <SectionLabel className="mb-0">
+                    {inventoryMeta[kind].plural.toUpperCase()} ·{" "}
+                    {included.length} DE {items.length}
+                  </SectionLabel>
+                  <button
+                    type="button"
+                    onClick={() => toggleAll(kind, allIds, allIncluded)}
+                    className="text-[11.5px] font-medium text-accent-text hover:underline"
+                  >
+                    {allIncluded ? "Desmarcar todos" : "Marcar todos"}
+                  </button>
                 </div>
+                {kind === "skills" ? (
+                  <div className="flex flex-col gap-4">
+                    {SKILL_CATEGORY_ORDER.map((category) => {
+                      const group = (
+                        items as InventoryShapes["skills"]["response"][]
+                      )
+                        .filter((it) => it.category === category)
+                        .sort((a, b) => b.level - a.level);
+                      if (group.length === 0) return null;
+                      return (
+                        <div key={category} className="flex flex-col gap-2">
+                          <div className="font-mono text-[10.5px] uppercase tracking-wider text-text3">
+                            {skillCategoryLabels[category]}
+                          </div>
+                          {group.map((item) => (
+                            <ToggleRow
+                              key={item.id}
+                              kind="skills"
+                              item={item}
+                              included={included.includes(item.id)}
+                              onToggle={() => toggle("skills", item.id)}
+                            />
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {items.map((item) => (
+                      <ToggleRow
+                        key={item.id}
+                        kind={kind}
+                        item={item}
+                        included={included.includes(item.id)}
+                        onToggle={() => toggle(kind, item.id)}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -395,6 +490,54 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
           </div>
         </div>
       </div>
+
+      <Modal
+        open={pdfOpen}
+        onClose={() => setPdfOpen(false)}
+        className="max-w-5xl"
+      >
+        <ModalHeader
+          title="Preview do PDF"
+          subtitle={
+            pdfPages > 0
+              ? `Currículo gerado · ${pdfPages} ${pdfPages === 1 ? "página" : "páginas"}`
+              : "Currículo gerado"
+          }
+          onClose={() => setPdfOpen(false)}
+        />
+        <div className="h-[72vh] bg-bg3 p-3">
+          {pdfUrl ? (
+            <iframe
+              title="Preview do PDF"
+              src={pdfUrl}
+              className="h-full w-full rounded-[8px] border border-border bg-white"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-[13px] text-text2">
+              Gerando preview...
+            </div>
+          )}
+        </div>
+        <ModalFooter>
+          <span className="text-[12.5px] text-text2">
+            O PDF usa os dados salvos deste perfil e nao depende de publicacao.
+          </span>
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" onClick={() => setPdfOpen(false)}>
+              Fechar
+            </Button>
+            {pdfUrl ? (
+              <a
+                href={pdfUrl}
+                download={`curriculo-${slug || profile.slug}.pdf`}
+                className="inline-flex items-center justify-center rounded-[9px] bg-accent px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:opacity-90"
+              >
+                Baixar PDF
+              </a>
+            ) : null}
+          </div>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 }

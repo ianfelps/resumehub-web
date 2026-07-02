@@ -53,6 +53,8 @@ export interface AccountResponse {
   fullName?: string | null;
   headline?: string | null;
   location?: string | null;
+  phoneNumber?: string | null;
+  showEmailOnResume: boolean;
   linkedInUrl?: string | null;
   gitHubUrl?: string | null;
   websiteUrl?: string | null;
@@ -62,6 +64,8 @@ export interface UpdateAccountRequest {
   fullName?: string | null;
   headline?: string | null;
   location?: string | null;
+  phoneNumber?: string | null;
+  showEmailOnResume: boolean;
   linkedInUrl?: string | null;
   gitHubUrl?: string | null;
   websiteUrl?: string | null;
@@ -202,6 +206,8 @@ export interface PublicOwner {
   fullName?: string | null;
   headline?: string | null;
   location?: string | null;
+  email?: string | null;
+  phoneNumber?: string | null;
   linkedInUrl?: string | null;
   gitHubUrl?: string | null;
   websiteUrl?: string | null;

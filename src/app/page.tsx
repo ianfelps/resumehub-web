@@ -1,6 +1,12 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { LandingPage } from "@/components/marketing/LandingPage";
 
-/** The app entry just forwards to the dashboard; the shell guards auth. */
+export const metadata: Metadata = {
+  title: "ResumeHub — Seu centro de comando de carreira",
+  description:
+    "Cadastre sua trajetória uma vez e monte o currículo perfeito para cada vaga em poucos cliques — com export PDF impecável.",
+};
+
 export default function Home() {
-  redirect("/dashboard");
+  return <LandingPage />;
 }

@@ -29,11 +29,55 @@ function linkLabel(url: string): string {
 
 export function ResumeDocument({ data }: { data: PublicResumeResponse }) {
   const { owner } = data;
-  const links = [
-    owner.linkedInUrl ? { label: "linkedin", url: owner.linkedInUrl } : null,
-    owner.gitHubUrl ? { label: "github", url: owner.gitHubUrl } : null,
-    owner.websiteUrl ? { label: linkLabel(owner.websiteUrl), url: owner.websiteUrl } : null,
-  ].filter((l): l is { label: string; url: string } => l !== null);
+  const linkStyle = {
+    color: "#2f5fff",
+    textDecoration: "underline",
+    textUnderlineOffset: "2px",
+  } as const;
+  const contacts = [
+    owner.location ? { key: "loc", node: <span>{owner.location}</span> } : null,
+    owner.phoneNumber ? { key: "tel", node: <span>{owner.phoneNumber}</span> } : null,
+    owner.email
+      ? {
+          key: "mail",
+          node: (
+            <a href={`mailto:${owner.email}`} style={linkStyle}>
+              {owner.email}
+            </a>
+          ),
+        }
+      : null,
+    owner.linkedInUrl
+      ? {
+          key: "linkedin",
+          node: (
+            <a href={href(owner.linkedInUrl)} target="_blank" rel="noreferrer" style={linkStyle}>
+              linkedin
+            </a>
+          ),
+        }
+      : null,
+    owner.gitHubUrl
+      ? {
+          key: "github",
+          node: (
+            <a href={href(owner.gitHubUrl)} target="_blank" rel="noreferrer" style={linkStyle}>
+              github
+            </a>
+          ),
+        }
+      : null,
+    owner.websiteUrl
+      ? {
+          key: "website",
+          node: (
+            <a href={href(owner.websiteUrl)} target="_blank" rel="noreferrer" style={linkStyle}>
+              {linkLabel(owner.websiteUrl)}
+            </a>
+          ),
+        }
+      : null,
+  ].filter((c): c is { key: string; node: React.ReactElement } => c !== null);
 
   return (
     <div
@@ -49,26 +93,12 @@ export function ResumeDocument({ data }: { data: PublicResumeResponse }) {
             {owner.headline}
           </div>
         ) : null}
-        {owner.location || links.length > 0 ? (
+        {contacts.length > 0 ? (
           <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-[11px] text-[#6b7280]">
-            {owner.location ? <span>{owner.location}</span> : null}
-            {links.map((l, i) => (
-              <span key={l.url} className="flex items-center gap-2.5">
-                {(owner.location || i > 0) && (
-                  <span className="text-[#c4c9d2]">·</span>
-                )}
-                <a
-                  href={href(l.url)}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{
-                    color: "#2f5fff",
-                    textDecoration: "underline",
-                    textUnderlineOffset: "2px",
-                  }}
-                >
-                  {l.label}
-                </a>
+            {contacts.map((ct, i) => (
+              <span key={ct.key} className="flex items-center gap-2.5">
+                {i > 0 && <span className="text-[#c4c9d2]">·</span>}
+                {ct.node}
               </span>
             ))}
           </div>

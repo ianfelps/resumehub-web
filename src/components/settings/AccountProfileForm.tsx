@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Card, SectionLabel } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Input";
+import { Toggle } from "@/components/ui/Toggle";
 import { Skeleton } from "@/components/ui/Misc";
 import { getErrorMessage } from "@/lib/api/client";
 import { useAccount, useUpdateAccount } from "@/lib/query/hooks";
@@ -26,6 +27,8 @@ const schema = z.object({
   fullName: z.string().trim().max(200).optional(),
   headline: z.string().trim().max(200).optional(),
   location: z.string().trim().max(200).optional(),
+  phoneNumber: z.string().trim().max(40).optional(),
+  showEmailOnResume: z.boolean(),
   linkedInUrl: optionalUrl,
   gitHubUrl: optionalUrl,
   websiteUrl: optionalUrl,
@@ -43,6 +46,8 @@ export function AccountProfileForm() {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isDirty },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -50,11 +55,15 @@ export function AccountProfileForm() {
       fullName: data?.fullName ?? "",
       headline: data?.headline ?? "",
       location: data?.location ?? "",
+      phoneNumber: data?.phoneNumber ?? "",
+      showEmailOnResume: data?.showEmailOnResume ?? false,
       linkedInUrl: data?.linkedInUrl ?? "",
       gitHubUrl: data?.gitHubUrl ?? "",
       websiteUrl: data?.websiteUrl ?? "",
     },
   });
+
+  const showEmailOnResume = watch("showEmailOnResume");
 
   const onSubmit = handleSubmit(async (values) => {
     setError(null);
@@ -64,6 +73,8 @@ export function AccountProfileForm() {
         fullName: values.fullName?.trim() || null,
         headline: values.headline?.trim() || null,
         location: values.location?.trim() || null,
+        phoneNumber: values.phoneNumber?.trim() || null,
+        showEmailOnResume: values.showEmailOnResume,
         linkedInUrl: values.linkedInUrl?.trim() || null,
         gitHubUrl: values.gitHubUrl?.trim() || null,
         websiteUrl: values.websiteUrl?.trim() || null,
@@ -103,9 +114,30 @@ export function AccountProfileForm() {
           >
             <Input {...register("headline")} placeholder="Desenvolvedor Backend" />
           </Field>
-          <Field label="Localização" error={errors.location?.message}>
-            <Input {...register("location")} placeholder="São Paulo · Remoto" />
-          </Field>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Localização" error={errors.location?.message}>
+              <Input {...register("location")} placeholder="São Paulo · Remoto" />
+            </Field>
+            <Field label="Celular · opcional" error={errors.phoneNumber?.message}>
+              <Input {...register("phoneNumber")} placeholder="(11) 99999-9999" />
+            </Field>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 rounded-[10px] border border-border bg-bg2 px-4 py-3">
+            <div className="min-w-0">
+              <div className="text-[13px] font-medium">Exibir e-mail no currículo</div>
+              <div className="text-[12px] text-text2">
+                Quando ativo, {data?.email ?? "seu e-mail"} aparece nos contatos do currículo.
+              </div>
+            </div>
+            <Toggle
+              checked={showEmailOnResume}
+              onChange={(v) =>
+                setValue("showEmailOnResume", v, { shouldDirty: true })
+              }
+              label="Exibir e-mail no currículo"
+            />
+          </div>
 
           <SectionLabel className="mt-1">REDES · aparecem no currículo</SectionLabel>
           <div className="grid gap-4 sm:grid-cols-2">
