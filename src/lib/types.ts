@@ -97,7 +97,7 @@ export interface ProjectRequest {
   description?: string | null;
   url?: string | null;
   repoUrl?: string | null;
-  highlights?: string | null;
+  date?: string | null; // ISO date (yyyy-MM-dd)
 }
 export interface ProjectResponse extends ProjectRequest {
   id: string;

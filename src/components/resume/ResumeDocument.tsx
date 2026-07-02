@@ -132,11 +132,11 @@ export function ResumeDocument({ data }: { data: PublicResumeResponse }) {
           <Entry
             key={p.id}
             title={p.name}
+            period={p.date ? formatMonthYear(p.date) : undefined}
             subtitle={p.url ?? undefined}
             body={
               <div className="mt-1.5 text-[11.5px] leading-relaxed text-[#4b5563]">
                 <Markdown content={p.description} />
-                <Markdown content={p.highlights} />
               </div>
             }
           />

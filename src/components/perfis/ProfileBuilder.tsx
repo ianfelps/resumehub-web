@@ -178,7 +178,13 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
       websiteUrl: account?.websiteUrl ?? null,
     },
     experiences: pickSelected(experiencesData, selection.experiences),
-    projects: pickSelected(projectsData, selection.projects),
+    // Projects render date-desc in the resume/portfolio (nulls last), matching
+    // the API's public assembly — so the preview sorts the same way.
+    projects: pickSelected(projectsData, selection.projects).sort((a, b) => {
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return b.date.localeCompare(a.date);
+    }),
     skills: pickSelected(skillsData, selection.skills),
     languages: pickSelected(languagesData, selection.languages),
     education: pickSelected(educationData, selection.education),

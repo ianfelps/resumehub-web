@@ -161,6 +161,14 @@ export function PortfolioView({ data }: { data: PublicResumeResponse }) {
                     <h3 className="text-[16px] font-semibold leading-snug">
                       {p.name}
                     </h3>
+                    {p.date ? (
+                      <span
+                        className="flex-none font-mono text-[12px]"
+                        style={{ color: c.muted }}
+                      >
+                        {formatMonthYear(p.date)}
+                      </span>
+                    ) : null}
                   </div>
                   {p.description ? (
                     <Markdown
@@ -169,15 +177,8 @@ export function PortfolioView({ data }: { data: PublicResumeResponse }) {
                       className="mt-2 text-[13.5px] leading-relaxed"
                     />
                   ) : null}
-                  {p.highlights ? (
-                    <Markdown
-                      content={p.highlights}
-                      linkColor={accent}
-                      className="mt-2 text-[13px] leading-relaxed"
-                    />
-                  ) : null}
                   {p.url || p.repoUrl ? (
-                    <div className="mt-4 flex flex-wrap gap-3 pt-1 text-[13px] font-medium">
+                    <div className="mt-4 flex flex-wrap items-center gap-3 pt-1 text-[13px] font-medium">
                       {p.url ? (
                         <a
                           href={p.url}
@@ -193,9 +194,14 @@ export function PortfolioView({ data }: { data: PublicResumeResponse }) {
                           href={p.repoUrl}
                           target="_blank"
                           rel="noreferrer"
-                          style={{ color: c.muted }}
+                          className="rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-opacity hover:opacity-80"
+                          style={{
+                            background: c.surface2,
+                            border: `1px solid ${c.border}`,
+                            color: c.muted,
+                          }}
                         >
-                          Código
+                          Código ↗
                         </a>
                       ) : null}
                     </div>

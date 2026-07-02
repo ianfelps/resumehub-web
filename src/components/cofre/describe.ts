@@ -28,7 +28,11 @@ export function describeItem<K extends InventoryKind>(
     }
     case "projects": {
       const it = item as InventoryShapes["projects"]["response"];
-      return { title: it.name, subtitle: it.description ?? undefined };
+      return {
+        title: it.name,
+        subtitle: it.description ?? undefined,
+        meta: it.date ? formatMonthYear(it.date) : undefined,
+      };
     }
     case "skills": {
       const it = item as InventoryShapes["skills"]["response"];

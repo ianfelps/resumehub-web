@@ -119,7 +119,7 @@ const projectSchema = z.object({
   description: optionalText,
   url: optionalUrl,
   repoUrl: optionalUrl,
-  highlights: optionalText,
+  date: optionalDate,
 });
 
 function ProjectForm({ formId, defaultValues, onSubmit }: FormProps<"projects">) {
@@ -134,7 +134,7 @@ function ProjectForm({ formId, defaultValues, onSubmit }: FormProps<"projects">)
       description: defaultValues?.description ?? "",
       url: defaultValues?.url ?? "",
       repoUrl: defaultValues?.repoUrl ?? "",
-      highlights: defaultValues?.highlights ?? "",
+      date: defaultValues?.date ?? "",
     },
   });
 
@@ -145,9 +145,14 @@ function ProjectForm({ formId, defaultValues, onSubmit }: FormProps<"projects">)
       className="flex flex-col gap-4"
       noValidate
     >
-      <Field label="Nome" error={errors.name?.message}>
-        <Input invalid={!!errors.name} {...register("name")} />
-      </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Nome" error={errors.name?.message}>
+          <Input invalid={!!errors.name} {...register("name")} />
+        </Field>
+        <Field label="Data" error={errors.date?.message as string}>
+          <Input type="date" {...register("date")} />
+        </Field>
+      </div>
       <Field
         label="Descrição · suporta Markdown"
         error={errors.description?.message as string}
@@ -162,12 +167,6 @@ function ProjectForm({ formId, defaultValues, onSubmit }: FormProps<"projects">)
           <Input {...register("repoUrl")} placeholder="https://github.com/" />
         </Field>
       </div>
-      <Field
-        label="Destaques · suporta Markdown (listas, negrito…)"
-        error={errors.highlights?.message as string}
-      >
-        <Textarea {...register("highlights")} />
-      </Field>
     </form>
   );
 }
