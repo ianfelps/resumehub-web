@@ -8,13 +8,15 @@ import { Card, SectionLabel } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { PasswordChecklist } from "@/components/ui/PasswordChecklist";
 import { getErrorMessage } from "@/lib/api/client";
 import { useChangePassword } from "@/lib/query/hooks";
+import { passwordSchema } from "@/lib/validation/password";
 
 const schema = z
   .object({
     currentPassword: z.string().min(1, "Informe a senha atual"),
-    newPassword: z.string().min(8, "Mínimo de 8 caracteres"),
+    newPassword: passwordSchema,
     confirmPassword: z.string().min(1, "Confirme a nova senha"),
   })
   .refine((d) => d.newPassword === d.confirmPassword, {
@@ -31,8 +33,12 @@ export function ChangePasswordForm() {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
+
+  const newPassword = watch("newPassword") ?? "";
+  const confirmPassword = watch("confirmPassword") ?? "";
 
   const onSubmit = handleSubmit(async ({ currentPassword, newPassword }) => {
     setError(null);
@@ -62,7 +68,7 @@ export function ChangePasswordForm() {
           />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Nova senha" error={errors.newPassword?.message}>
+          <Field label="Nova senha">
             <PasswordInput
               autoComplete="new-password"
               invalid={!!errors.newPassword}
@@ -80,6 +86,8 @@ export function ChangePasswordForm() {
             />
           </Field>
         </div>
+
+        <PasswordChecklist value={newPassword} confirmValue={confirmPassword} />
 
         {error ? <p className="text-[12.5px] text-danger">{error}</p> : null}
         {feedback ? <p className="text-[12.5px] text-pos">{feedback}</p> : null}

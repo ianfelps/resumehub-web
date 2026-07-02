@@ -76,6 +76,10 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
+export interface DeleteAccountRequest {
+  password: string;
+}
+
 // ---- Inventory: Experience ----
 
 export interface ExperienceRequest {

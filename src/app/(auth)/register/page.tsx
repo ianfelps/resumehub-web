@@ -12,12 +12,14 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field, Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { PasswordChecklist } from "@/components/ui/PasswordChecklist";
+import { passwordSchema } from "@/lib/validation/password";
 
 const schema = z
   .object({
     fullName: z.string().trim().min(1, "Informe seu nome"),
     email: z.string().email("E-mail inválido"),
-    password: z.string().min(8, "Mínimo de 8 caracteres"),
+    password: passwordSchema,
     confirmPassword: z.string().min(1, "Confirme a senha"),
   })
   .refine((d) => d.password === d.confirmPassword, {
@@ -33,8 +35,12 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
+
+  const password = watch("password") ?? "";
+  const confirmPassword = watch("confirmPassword") ?? "";
 
   const onSubmit = handleSubmit(async ({ fullName, email, password }) => {
     setServerError(null);
@@ -75,7 +81,7 @@ export default function RegisterPage() {
           />
         </Field>
 
-        <Field label="Senha" htmlFor="password" error={errors.password?.message}>
+        <Field label="Senha" htmlFor="password">
           <PasswordInput
             id="password"
             autoComplete="new-password"
@@ -98,6 +104,8 @@ export default function RegisterPage() {
             {...register("confirmPassword")}
           />
         </Field>
+
+        <PasswordChecklist value={password} confirmValue={confirmPassword} />
 
         {serverError ? (
           <p className="text-[12.5px] text-danger">{serverError}</p>

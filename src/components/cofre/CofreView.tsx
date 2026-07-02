@@ -162,7 +162,7 @@ export function CofreView() {
           </p>
         </div>
         <div className="flex-1" />
-        <Button onClick={openCreate}>
+        <Button onClick={openCreate} data-tour="cofre-add">
           <PlusIcon className="h-4 w-4" />
           Adicionar {inventoryMeta[active].singular}
         </Button>

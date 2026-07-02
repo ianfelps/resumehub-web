@@ -17,6 +17,7 @@ import {
   hasValidSession,
   setTokens,
 } from "@/lib/auth/token-store";
+import { setTourPending } from "@/lib/tour/tour-store";
 import type { LoginRequest, RegisterRequest } from "@/lib/types";
 
 export interface AuthUser {
@@ -104,6 +105,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         fullName: body.fullName ?? null,
       },
     );
+    // Mark that this fresh signup should get the first-time guided tour.
+    setTourPending();
     setStatus("authenticated");
   }, []);
 
