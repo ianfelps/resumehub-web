@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Misc";
 import { useInventory } from "@/lib/query/hooks";
@@ -14,10 +15,21 @@ const stats: { kind: InventoryKind; label: string }[] = [
   { kind: "courses", label: "Cursos" },
 ];
 
-function StatCard({ kind, label }: { kind: InventoryKind; label: string }) {
+function StatCard({
+  kind,
+  label,
+  index,
+}: {
+  kind: InventoryKind;
+  label: string;
+  index: number;
+}) {
   const { data, isLoading } = useInventory(kind);
   return (
-    <Card className="px-4 py-3.5">
+    <Card
+      className="rh-reveal px-4 py-3.5"
+      style={{ "--rh-delay": `${index * 35}ms` } as CSSProperties}
+    >
       {isLoading ? (
         <Skeleton className="h-6 w-10" />
       ) : (
@@ -33,8 +45,8 @@ function StatCard({ kind, label }: { kind: InventoryKind; label: string }) {
 export function StatCards() {
   return (
     <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
-      {stats.map((s) => (
-        <StatCard key={s.kind} {...s} />
+      {stats.map((s, index) => (
+        <StatCard key={s.kind} {...s} index={index} />
       ))}
     </div>
   );

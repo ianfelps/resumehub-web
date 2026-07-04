@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import {
   Check,
@@ -17,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { useTheme } from "@/lib/use-theme";
+import { TypewriterText } from "@/components/ui/TypewriterText";
 
 /* Paper document previews are always light, regardless of app theme. */
 const paper = { background: "#fff", color: "#15171c" } as const;
@@ -132,13 +134,17 @@ export function LandingPage() {
       {/* ===== HERO ===== */}
       <header className="mx-auto max-w-[1120px] px-[26px] pb-[30px] pt-[70px] text-center">
         <div className="mb-[26px] inline-flex items-center gap-[9px] rounded-[30px] border border-border bg-bg2 px-3.5 py-1.5 font-mono text-[12px] text-text2">
-          <span className="block h-[7px] w-[7px] rounded-full bg-pos" />
+          <span className="rh-status-dot block h-[7px] w-[7px] rounded-full bg-pos" />
           Um cofre. Infinitos currículos.
         </div>
         <h1 className="mx-auto max-w-[820px] text-[56px] font-bold leading-[1.04] tracking-[-0.03em]">
           Seu centro de comando
           <br />
-          de <span className="text-accent">carreira</span>.
+          de{" "}
+          <TypewriterText className="text-accent" durationMs={1100}>
+            carreira
+          </TypewriterText>
+          .
         </h1>
         <p className="mx-auto mt-[22px] max-w-[560px] text-[17px] leading-[1.6] text-text2">
           Cadastre sua trajetória uma vez. Monte o currículo perfeito para cada
@@ -164,7 +170,7 @@ export function LandingPage() {
         </div>
 
         {/* product mock */}
-        <div className="mt-[52px] overflow-hidden rounded-2xl border border-border text-left shadow-[var(--shadow)]">
+        <div className="rh-reveal mt-[52px] overflow-hidden rounded-2xl border border-border text-left shadow-[var(--shadow)] [--rh-delay:120ms]">
           <div className="flex items-center gap-2.5 border-b border-border bg-bg2 px-3.5 py-[11px]">
             <div className="flex gap-[7px]">
               <span className="block h-[11px] w-[11px] rounded-full bg-[#ff5f57]" />
@@ -270,7 +276,7 @@ export function LandingPage() {
       </header>
 
       {/* ===== PROBLEMA ===== */}
-      <section className="mx-auto max-w-[1120px] px-[26px] pb-5 pt-[60px]">
+      <section className="rh-reveal mx-auto max-w-[1120px] px-[26px] pb-5 pt-[60px]">
         <div className="grid grid-cols-1 items-center gap-12 md:grid-cols-2">
           <div>
             <div className="mb-3.5 font-mono text-[12px] tracking-[0.14em] text-accent">O PROBLEMA</div>
@@ -288,12 +294,12 @@ export function LandingPage() {
               "curriculo_final_v3_REAL.docx",
               "cv_frontend_copia (2).docx",
               "resume_ATUALIZADO_usar_esse.pdf",
-            ].map((f) => (
-              <div key={f} className="flex items-center gap-[11px] rounded-[9px] border border-border bg-bg2 px-3.5 py-3 text-text2">
+            ].map((f, index) => (
+              <div key={f} className="rh-reveal flex items-center gap-[11px] rounded-[9px] border border-border bg-bg2 px-3.5 py-3 text-text2" style={{ "--rh-delay": `${index * 45}ms` } as CSSProperties}>
                 <X size={14} strokeWidth={2.4} className="text-danger" aria-hidden /> {f}
               </div>
             ))}
-            <div className="flex items-center gap-[11px] rounded-[9px] border border-accent bg-accent-soft px-3.5 py-3 font-semibold text-accent-text">
+            <div className="rh-reveal flex items-center gap-[11px] rounded-[9px] border border-accent bg-accent-soft px-3.5 py-3 font-semibold text-accent-text [--rh-delay:135ms]">
               <Check size={14} strokeWidth={2.4} aria-hidden /> resumehub · 1 cofre, tudo no lugar
             </div>
           </div>
@@ -311,7 +317,7 @@ export function LandingPage() {
 
         <div className="flex flex-col gap-4">
           {/* passo 1 */}
-          <div className="grid grid-cols-1 items-center gap-10 rounded-2xl border border-border bg-bg2 px-10 py-9 md:grid-cols-2">
+          <div className="rh-reveal grid grid-cols-1 items-center gap-10 rounded-2xl border border-border bg-bg2 px-10 py-9 md:grid-cols-2">
             <div>
               <div className="mb-4 flex items-center gap-[11px]">
                 <span className="flex h-[34px] w-[34px] items-center justify-center rounded-[10px] bg-accent font-mono text-[15px] font-semibold text-white">1</span>
@@ -344,7 +350,7 @@ export function LandingPage() {
           </div>
 
           {/* passo 2 */}
-          <div className="grid grid-cols-1 items-center gap-10 rounded-2xl border border-border bg-bg2 px-10 py-9 md:grid-cols-2">
+          <div className="rh-reveal grid grid-cols-1 items-center gap-10 rounded-2xl border border-border bg-bg2 px-10 py-9 md:grid-cols-2 [--rh-delay:70ms]">
             <div className="order-2 rounded-xl border border-border bg-bg3 p-5 md:order-1">
               <div className="mb-2.5 font-mono text-[10px] tracking-[0.12em] text-text2">SELECIONE AS PEÇAS</div>
               <div className="flex flex-col gap-2">
@@ -377,7 +383,7 @@ export function LandingPage() {
           </div>
 
           {/* passo 3 */}
-          <div className="grid grid-cols-1 items-center gap-10 rounded-2xl border border-border bg-bg2 px-10 py-9 md:grid-cols-2">
+          <div className="rh-reveal grid grid-cols-1 items-center gap-10 rounded-2xl border border-border bg-bg2 px-10 py-9 md:grid-cols-2 [--rh-delay:140ms]">
             <div>
               <div className="mb-4 flex items-center gap-[11px]">
                 <span className="flex h-[34px] w-[34px] items-center justify-center rounded-[10px] bg-accent font-mono text-[15px] font-semibold text-white">3</span>
@@ -429,8 +435,8 @@ export function LandingPage() {
           </h2>
         </div>
         <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((f) => (
-            <div key={f.title} className="rounded-[14px] border border-border bg-bg2 p-6">
+          {features.map((f, index) => (
+            <div key={f.title} className="rh-reveal rounded-[14px] border border-border bg-bg2 p-6" style={{ "--rh-delay": `${index * 45}ms` } as CSSProperties}>
               <div className="mb-4 flex h-[38px] w-[38px] items-center justify-center rounded-[10px] border border-accent bg-accent-soft text-accent-text">
                 <f.icon size={18} strokeWidth={1.8} aria-hidden />
               </div>
@@ -526,7 +532,7 @@ export function LandingPage() {
 
       {/* ===== CTA FINAL ===== */}
       <section className="mx-auto max-w-[1120px] px-[26px] py-[60px]">
-        <div className="relative overflow-hidden rounded-[20px] bg-accent px-10 py-14 text-center">
+        <div className="rh-reveal relative overflow-hidden rounded-[20px] bg-accent px-10 py-14 text-center">
           <div className="mb-4 font-mono text-[12px] tracking-[0.16em] text-white/75">RESUMEHUB</div>
           <h2 className="mx-auto max-w-[600px] text-[38px] font-bold leading-[1.1] tracking-[-0.02em] text-white">
             Pare de reescrever. Comece a selecionar.

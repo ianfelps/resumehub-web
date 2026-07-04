@@ -119,3 +119,83 @@ body {
   border-radius: 8px;
   animation: rh-pulse 1.4s ease-in-out infinite;
 }
+
+@keyframes rh-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes rh-type {
+  from { width: 0; }
+  to { width: calc(var(--rh-chars, 24) * 1ch); }
+}
+
+@keyframes rh-caret {
+  0%, 45% { border-right-color: currentColor; }
+  46%, 100% { border-right-color: transparent; }
+}
+
+@keyframes rh-status-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--pos) 42%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--pos) 0%, transparent);
+  }
+}
+
+.rh-reveal {
+  animation: rh-reveal 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: var(--rh-delay, 0ms);
+  transform-origin: center top;
+}
+
+/* Items already on screen at load animate on mount (rule above) — no JS wait,
+   stagger intact. RevealOnScroll only holds items that start BELOW the fold:
+   it kills the animation and pins them at the hidden start state... */
+.rh-reveal.rh-reveal-hold {
+  animation: none;
+  opacity: 0;
+  transform: translateY(10px) scale(0.985);
+}
+/* ...then re-runs the reveal from the top once they scroll into view. */
+.rh-reveal.rh-in-view {
+  animation: rh-reveal 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: var(--rh-delay, 0ms);
+}
+
+.rh-typewriter {
+  display: inline-block;
+  max-width: max-content;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  border-right: 0.08em solid currentColor;
+  animation:
+    rh-type var(--rh-type-duration, 1400ms) steps(var(--rh-chars, 24), end) both,
+    rh-caret 900ms step-end var(--rh-caret-steps, 3) forwards;
+}
+
+.rh-status-dot {
+  animation: rh-status-pulse 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rh-reveal,
+  .rh-typewriter,
+  .rh-status-dot,
+  .rh-skeleton {
+    animation: none !important;
+  }
+
+  .rh-typewriter {
+    width: auto !important;
+    border-right: 0;
+  }
+}

@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import {
   languageProficiencyLabels,
   skillCategoryLabels,
@@ -6,6 +7,7 @@ import {
 import { formatMonthYear, formatPeriod } from "@/lib/format";
 import { hexToRgba } from "@/lib/color";
 import { Markdown } from "@/components/ui/Markdown";
+import { TypewriterText } from "@/components/ui/TypewriterText";
 import { SkillCategory } from "@/lib/types";
 import type { PublicResumeResponse } from "@/lib/types";
 
@@ -78,7 +80,9 @@ export function PortfolioView({ data }: { data: PublicResumeResponse }) {
             PORTFÓLIO
           </div>
           <h1 className="mt-3 text-[clamp(30px,6vw,52px)] font-bold leading-[1.05] tracking-tight">
-            {displayName}
+            <TypewriterText durationMs={Math.min(1900, 700 + displayName.length * 45)}>
+              {displayName}
+            </TypewriterText>
           </h1>
           {owner.headline ? (
             <div
@@ -151,11 +155,17 @@ export function PortfolioView({ data }: { data: PublicResumeResponse }) {
         {data.projects.length > 0 ? (
           <Section title="Projetos" accent={accent} muted={c.muted}>
             <div className="grid gap-4 sm:grid-cols-2 sm:[&>*:last-child:nth-child(odd)]:col-span-2">
-              {data.projects.map((p) => (
+              {data.projects.map((p, index) => (
                 <div
                   key={p.id}
-                  className="flex flex-col rounded-2xl p-5 transition-colors"
-                  style={{ background: c.surface, border: `1px solid ${c.border}` }}
+                  className="rh-reveal flex flex-col rounded-2xl p-5 transition-colors"
+                  style={
+                    {
+                      background: c.surface,
+                      border: `1px solid ${c.border}`,
+                      "--rh-delay": `${index * 45}ms`,
+                    } as CSSProperties
+                  }
                 >
                   <div className="flex items-start justify-between gap-3">
                     <h3 className="text-[16px] font-semibold leading-snug">
@@ -219,8 +229,12 @@ export function PortfolioView({ data }: { data: PublicResumeResponse }) {
               className="flex flex-col gap-6 pl-5"
               style={{ borderLeft: `1px solid ${c.border}` }}
             >
-              {data.experiences.map((e) => (
-                <div key={e.id} className="relative">
+              {data.experiences.map((e, index) => (
+                <div
+                  key={e.id}
+                  className="rh-reveal relative"
+                  style={{ "--rh-delay": `${index * 45}ms` } as CSSProperties}
+                >
                   <span
                     className="absolute -left-[26px] top-1.5 h-2.5 w-2.5 rounded-full"
                     style={{ background: accent, boxShadow: `0 0 0 4px ${accentSoft}` }}
@@ -267,15 +281,18 @@ export function PortfolioView({ data }: { data: PublicResumeResponse }) {
                     {skillCategoryLabels[g.cat].toUpperCase()}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {g.items.map((s) => (
+                    {g.items.map((s, index) => (
                       <span
                         key={s.id}
-                        className="rounded-lg px-3 py-1.5 text-[13px]"
-                        style={{
-                          background: accentSoft,
-                          border: `1px solid ${accentBorder}`,
-                          color: c.text,
-                        }}
+                        className="rh-reveal rounded-lg px-3 py-1.5 text-[13px]"
+                        style={
+                          {
+                            background: accentSoft,
+                            border: `1px solid ${accentBorder}`,
+                            color: c.text,
+                            "--rh-delay": `${index * 25}ms`,
+                          } as CSSProperties
+                        }
                         title={skillLevelLabels[s.level]}
                       >
                         {s.name}
@@ -292,9 +309,10 @@ export function PortfolioView({ data }: { data: PublicResumeResponse }) {
         {data.education.length > 0 ? (
           <Section title="Formação" accent={accent} muted={c.muted}>
             <div className="flex flex-col gap-3">
-              {data.education.map((ed) => (
+              {data.education.map((ed, index) => (
                 <Row
                   key={ed.id}
+                  delayMs={index * 45}
                   title={ed.degree}
                   subtitle={[ed.institution, ed.field].filter(Boolean).join(" · ")}
                   meta={formatPeriod(ed.startDate, ed.endDate)}
@@ -310,9 +328,10 @@ export function PortfolioView({ data }: { data: PublicResumeResponse }) {
         {data.courses.length > 0 ? (
           <Section title="Cursos & Certificações" accent={accent} muted={c.muted}>
             <div className="flex flex-col gap-3">
-              {data.courses.map((co) => (
+              {data.courses.map((co, index) => (
                 <Row
                   key={co.id}
+                  delayMs={index * 45}
                   title={co.name}
                   subtitle={co.provider ?? undefined}
                   meta={co.completionDate ? formatMonthYear(co.completionDate) : undefined}
@@ -330,8 +349,12 @@ export function PortfolioView({ data }: { data: PublicResumeResponse }) {
         {data.languages.length > 0 ? (
           <Section title="Idiomas" accent={accent} muted={c.muted}>
             <div className="flex flex-wrap gap-x-6 gap-y-2">
-              {data.languages.map((l) => (
-                <span key={l.id} className="text-[14px]">
+              {data.languages.map((l, index) => (
+                <span
+                  key={l.id}
+                  className="rh-reveal text-[14px]"
+                  style={{ "--rh-delay": `${index * 35}ms` } as CSSProperties}
+                >
                   <span className="font-semibold">{l.name}</span>
                   <span style={{ color: c.muted }}>
                     {" "}
@@ -344,7 +367,7 @@ export function PortfolioView({ data }: { data: PublicResumeResponse }) {
         ) : null}
 
         <footer
-          className="mt-2 border-t pt-6 text-[12px]"
+          className="rh-reveal mt-2 border-t pt-6 text-[12px]"
           style={{ borderColor: c.border, color: c.muted }}
         >
           <span className="font-mono">{displayName}</span> · feito com{" "}
@@ -397,6 +420,7 @@ function Row({
   muted,
   border,
   surface,
+  delayMs = 0,
 }: {
   title: string;
   subtitle?: string;
@@ -406,11 +430,18 @@ function Row({
   muted: string;
   border: string;
   surface: string;
+  delayMs?: number;
 }) {
   return (
     <div
-      className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 rounded-xl px-4 py-3"
-      style={{ background: surface, border: `1px solid ${border}` }}
+      className="rh-reveal flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 rounded-xl px-4 py-3"
+      style={
+        {
+          background: surface,
+          border: `1px solid ${border}`,
+          "--rh-delay": `${delayMs}ms`,
+        } as CSSProperties
+      }
     >
       <div className="min-w-0">
         <div className="text-[14px] font-semibold">

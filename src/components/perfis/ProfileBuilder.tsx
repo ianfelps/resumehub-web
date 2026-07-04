@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import type { DragEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -13,6 +14,11 @@ import { ExternalIcon } from "@/components/ui/icons";
 import { PortfolioView } from "@/components/portfolio/PortfolioView";
 import { describeItem } from "@/components/cofre/describe";
 import { inventoryMeta } from "@/components/cofre/forms";
+import {
+  buildPublicLink,
+  orderSelectedFirst,
+  reorderIds,
+} from "@/components/perfis/profile-builder-utils";
 import { skillCategoryLabels } from "@/lib/enums";
 import { SkillCategory } from "@/lib/types";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -51,6 +57,7 @@ const SKILL_CATEGORY_ORDER = [
 ] as const;
 type Selection = Record<InventoryKind, string[]>;
 type AnyItem = InventoryShapes[InventoryKind]["response"];
+type DragState = { kind: InventoryKind; id: string } | null;
 
 const emptySelection = (): Selection => ({
   experiences: [],
@@ -96,7 +103,42 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfPages, setPdfPages] = useState<number>(0);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [dragging, setDragging] = useState<DragState>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [autosaving, setAutosaving] = useState(false);
+  const [slugStatus, setSlugStatus] = useState<
+    "idle" | "checking" | "available" | "taken"
+  >("idle");
   const slugFocused = useRef(false);
+  const lastSavedDraft = useRef<string | null>(null);
+  const rowRefs = useRef(new Map<string, HTMLDivElement>());
+  const pendingRects = useRef<Map<string, DOMRect> | null>(null);
+  const hoverTimer = useRef<number | null>(null);
+  const scheduledHoverTarget = useRef<string | null>(null);
+
+  const rowKey = (kind: InventoryKind, id: string) => `${kind}:${id}`;
+
+  const setRowRef = (kind: InventoryKind, id: string, node: HTMLDivElement | null) => {
+    const key = rowKey(kind, id);
+    if (node) rowRefs.current.set(key, node);
+    else rowRefs.current.delete(key);
+  };
+
+  const captureRects = (kind: InventoryKind) => {
+    const rects = new Map<string, DOMRect>();
+    for (const [key, node] of rowRefs.current) {
+      if (key.startsWith(`${kind}:`)) rects.set(key, node.getBoundingClientRect());
+    }
+    return rects;
+  };
+
+  const clearHoverReorder = () => {
+    if (hoverTimer.current !== null) {
+      window.clearTimeout(hoverTimer.current);
+      hoverTimer.current = null;
+    }
+    scheduledHoverTarget.current = null;
+  };
 
   // Seed editable state from the loaded profile and its saved item selection
   // (read back from GET /profiles/{id}/items), in display order.
@@ -115,6 +157,16 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
     const next = emptySelection();
     for (const k of KINDS) next[k] = items[k].map((s) => s.id);
     setSelection(next);
+    lastSavedDraft.current = JSON.stringify({
+      name: profileQuery.data.name,
+      slug: profileQuery.data.slug,
+      headline: profileQuery.data.headline ?? "",
+      summary: profileQuery.data.summary ?? "",
+      isPublic: profileQuery.data.isPublic,
+      theme: profileQuery.data.theme,
+      accent: profileQuery.data.accentColor,
+      selection: next,
+    });
     setInitialized(true);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [initialized, profileQuery.data, inventoryLoaded, itemsQuery.data]);
@@ -142,6 +194,91 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
   const toggleAll = (kind: InventoryKind, ids: string[], allIncluded: boolean) => {
     setSelection((prev) => ({ ...prev, [kind]: allIncluded ? [] : ids }));
   };
+
+  const moveSelection = (kind: InventoryKind, fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    pendingRects.current = captureRects(kind);
+    setSelection((prev) => {
+      const current = prev[kind];
+      const next = reorderIds(current, fromId, toId);
+      if (next === current) {
+        pendingRects.current = null;
+        return prev;
+      }
+      return { ...prev, [kind]: next };
+    });
+  };
+
+  const scheduleMoveSelection = (
+    kind: InventoryKind,
+    fromId: string,
+    toId: string,
+    pointerY: number,
+    targetRect: DOMRect,
+  ) => {
+    if (fromId === toId) return;
+
+    const current = selection[kind];
+    const from = current.indexOf(fromId);
+    const to = current.indexOf(toId);
+    if (from < 0 || to < 0) return;
+
+    const midpoint = targetRect.top + targetRect.height / 2;
+    if (from < to && pointerY < midpoint) return;
+    if (from > to && pointerY > midpoint) return;
+
+    const target = rowKey(kind, toId);
+    if (scheduledHoverTarget.current === target) return;
+
+    clearHoverReorder();
+    scheduledHoverTarget.current = target;
+    hoverTimer.current = window.setTimeout(() => {
+      moveSelection(kind, fromId, toId);
+      scheduledHoverTarget.current = null;
+      hoverTimer.current = null;
+    }, 140);
+  };
+
+  useLayoutEffect(() => {
+    const previous = pendingRects.current;
+    if (!previous) return;
+    pendingRects.current = null;
+
+    const animated: HTMLDivElement[] = [];
+    for (const [key, before] of previous) {
+      const node = rowRefs.current.get(key);
+      if (!node) continue;
+
+      const after = node.getBoundingClientRect();
+      const dx = before.left - after.left;
+      const dy = before.top - after.top;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
+
+      node.style.transition = "none";
+      node.style.transform = `translate(${dx}px, ${dy}px)`;
+      animated.push(node);
+    }
+
+    if (animated.length === 0) return;
+    const frame = window.requestAnimationFrame(() => {
+      for (const node of animated) {
+        node.style.transition = "transform 280ms ease";
+        node.style.transform = "";
+      }
+    });
+
+    const timer = window.setTimeout(() => {
+      for (const node of animated) {
+        node.style.transition = "";
+        node.style.transform = "";
+      }
+    }, 340);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
+  }, [selection]);
 
   // Plain locals keep the memo dependency list compiler-friendly.
   const experiencesData = queries.experiences.data;
@@ -178,22 +315,28 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
       websiteUrl: account?.websiteUrl ?? null,
     },
     experiences: pickSelected(experiencesData, selection.experiences),
-    // Projects render date-desc in the resume/portfolio (nulls last), matching
-    // the API's public assembly — so the preview sorts the same way.
-    projects: pickSelected(projectsData, selection.projects).sort((a, b) => {
-      if (!a.date) return 1;
-      if (!b.date) return -1;
-      return b.date.localeCompare(a.date);
-    }),
+    projects: pickSelected(projectsData, selection.projects),
     skills: pickSelected(skillsData, selection.skills),
     languages: pickSelected(languagesData, selection.languages),
     education: pickSelected(educationData, selection.education),
     courses: pickSelected(coursesData, selection.courses),
   };
 
+  const draftKey = JSON.stringify({
+    name,
+    slug,
+    headline,
+    summary,
+    isPublic,
+    theme,
+    accent,
+    selection,
+  });
+
   const save = async (publishOverride?: boolean) => {
     if (!profileQuery.data) return;
     setError(null);
+    setAutosaving(publishOverride === undefined);
     const nextPublic = publishOverride ?? isPublic;
     try {
       const updated = await updateProfile.mutateAsync({
@@ -223,10 +366,70 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
       });
       if (publishOverride !== undefined) setIsPublic(publishOverride);
       setSavedAt(new Date().toLocaleTimeString("pt-BR").slice(0, 5));
+      lastSavedDraft.current = JSON.stringify({
+        name: updated.name,
+        slug: slugFocused.current ? slug : updated.slug,
+        headline: headline.trim(),
+        summary: summary.trim(),
+        isPublic: nextPublic,
+        theme,
+        accent,
+        selection,
+      });
+      setHasUnsavedChanges(false);
     } catch (err) {
       setError(getErrorMessage(err));
+    } finally {
+      setAutosaving(false);
     }
   };
+
+  useEffect(() => {
+    if (!initialized) return;
+    setHasUnsavedChanges(draftKey !== lastSavedDraft.current);
+  }, [draftKey, initialized]);
+
+  useEffect(() => {
+    if (!initialized || !hasUnsavedChanges || slugStatus === "taken") return;
+    const timer = window.setTimeout(() => {
+      void save();
+    }, 1400);
+    return () => window.clearTimeout(timer);
+    // save intentionally reads the latest render values keyed by draftKey.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftKey, hasUnsavedChanges, initialized, slugStatus]);
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const handler = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [hasUnsavedChanges]);
+
+  useEffect(() => {
+    if (!initialized || !slug.trim()) {
+      const timer = window.setTimeout(() => setSlugStatus("idle"), 0);
+      return () => window.clearTimeout(timer);
+    }
+    if (slug.trim() === profileQuery.data?.slug) {
+      const timer = window.setTimeout(() => setSlugStatus("available"), 0);
+      return () => window.clearTimeout(timer);
+    }
+
+    const timer = window.setTimeout(async () => {
+      setSlugStatus("checking");
+      try {
+        const result = await profilesApi.slugAvailability(slug.trim(), profileId);
+        setSlugStatus(result.available ? "available" : "taken");
+      } catch {
+        setSlugStatus("idle");
+      }
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [initialized, profileId, profileQuery.data?.slug, slug]);
 
   const previewPdf = async () => {
     setError(null);
@@ -249,6 +452,14 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
 
   const busy = updateProfile.isPending || setItems.isPending;
   const profile = profileQuery.data;
+  const slugBlocked = slugStatus === "taken";
+
+  const copyPublicLink = async () => {
+    const currentSlug = slug.trim() || profile?.slug;
+    if (!currentSlug || typeof window === "undefined") return;
+    await navigator.clipboard.writeText(buildPublicLink(window.location.origin, currentSlug));
+    setSavedAt("link copiado");
+  };
 
   if (profileQuery.isLoading || !initialized) {
     return (
@@ -287,6 +498,11 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
             salvo {savedAt}
           </span>
         ) : null}
+        {hasUnsavedChanges ? (
+          <span className="font-mono text-[11.5px] text-warn">
+            {autosaving || busy ? "salvando..." : "alteracoes nao salvas"}
+          </span>
+        ) : null}
         <div className="flex-1" />
         {isPublic ? (
           <Link
@@ -299,8 +515,15 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
         ) : null}
         <Button
           variant="secondary"
+          onClick={copyPublicLink}
+          disabled={!isPublic || slugBlocked}
+        >
+          Copiar link
+        </Button>
+        <Button
+          variant="secondary"
           onClick={() => save(!isPublic)}
-          disabled={busy}
+          disabled={busy || slugBlocked}
         >
           {isPublic ? "Despublicar" : "Publicar"}
         </Button>
@@ -311,7 +534,7 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
         >
           {pdfLoading ? "Gerando PDF..." : "Gerar PDF"}
         </Button>
-        <Button onClick={() => save()} disabled={busy}>
+        <Button onClick={() => save()} disabled={busy || slugBlocked}>
           {busy ? "Salvando…" : "Salvar"}
         </Button>
       </div>
@@ -348,6 +571,20 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
                     placeholder="front-end-nubank"
                   />
                 </div>
+                {slugStatus !== "idle" ? (
+                  <div
+                    className={[
+                      "mt-1 font-mono text-[11.5px]",
+                      slugStatus === "taken" ? "text-danger" : "text-text2",
+                    ].join(" ")}
+                  >
+                    {slugStatus === "checking"
+                      ? "checando disponibilidade..."
+                      : slugStatus === "taken"
+                        ? "link ja esta em uso"
+                        : "link disponivel"}
+                  </div>
+                ) : null}
               </Field>
             </div>
             <Field label="Subtítulo do currículo">
@@ -423,6 +660,7 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
             const items = (queries[kind].data ?? []) as AnyItem[];
             if (items.length === 0) return null;
             const included = selection[kind];
+            const orderedItems = orderSelectedFirst(items, included);
             const allIds = items.map((i) => i.id);
             const allIncluded = included.length === items.length;
             return (
@@ -443,11 +681,19 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
                 {kind === "skills" ? (
                   <div className="flex flex-col gap-4">
                     {SKILL_CATEGORY_ORDER.map((category) => {
-                      const group = (
-                        items as InventoryShapes["skills"]["response"][]
+                      const group = orderSelectedFirst(
+                        items as InventoryShapes["skills"]["response"][],
+                        included,
                       )
                         .filter((it) => it.category === category)
-                        .sort((a, b) => b.level - a.level);
+                        .sort((a, b) => {
+                          const ai = included.indexOf(a.id);
+                          const bi = included.indexOf(b.id);
+                          if (ai >= 0 && bi >= 0) return ai - bi;
+                          if (ai >= 0) return -1;
+                          if (bi >= 0) return 1;
+                          return b.level - a.level;
+                        });
                       if (group.length === 0) return null;
                       return (
                         <div key={category} className="flex flex-col gap-2">
@@ -457,10 +703,38 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
                           {group.map((item) => (
                             <ToggleRow
                               key={item.id}
+                              rowRef={(node) => setRowRef("skills", item.id, node)}
                               kind="skills"
                               item={item}
                               included={included.includes(item.id)}
                               onToggle={() => toggle("skills", item.id)}
+                              dragging={dragging?.kind === "skills" && dragging.id === item.id}
+                              onDragStart={(event) => {
+                                event.dataTransfer.effectAllowed = "move";
+                                event.dataTransfer.setData("text/plain", item.id);
+                                setDragging({ kind: "skills", id: item.id });
+                              }}
+                              onDragOver={(event) => {
+                                if (!included.includes(item.id)) return;
+                                event.preventDefault();
+                                if (dragging?.kind === "skills")
+                                  scheduleMoveSelection(
+                                    "skills",
+                                    dragging.id,
+                                    item.id,
+                                    event.clientY,
+                                    event.currentTarget.getBoundingClientRect(),
+                                  );
+                              }}
+                              onDrop={(event) => {
+                                event.preventDefault();
+                                clearHoverReorder();
+                                setDragging(null);
+                              }}
+                              onDragEnd={() => {
+                                clearHoverReorder();
+                                setDragging(null);
+                              }}
                             />
                           ))}
                         </div>
@@ -469,13 +743,41 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
                   </div>
                 ) : (
                   <div className="flex flex-col gap-2">
-                    {items.map((item) => (
+                    {orderedItems.map((item) => (
                       <ToggleRow
                         key={item.id}
+                        rowRef={(node) => setRowRef(kind, item.id, node)}
                         kind={kind}
                         item={item}
                         included={included.includes(item.id)}
                         onToggle={() => toggle(kind, item.id)}
+                        dragging={dragging?.kind === kind && dragging.id === item.id}
+                        onDragStart={(event) => {
+                          event.dataTransfer.effectAllowed = "move";
+                          event.dataTransfer.setData("text/plain", item.id);
+                          setDragging({ kind, id: item.id });
+                        }}
+                        onDragOver={(event) => {
+                          if (!included.includes(item.id)) return;
+                          event.preventDefault();
+                          if (dragging?.kind === kind)
+                            scheduleMoveSelection(
+                              kind,
+                              dragging.id,
+                              item.id,
+                              event.clientY,
+                              event.currentTarget.getBoundingClientRect(),
+                            );
+                        }}
+                        onDrop={(event) => {
+                          event.preventDefault();
+                          clearHoverReorder();
+                          setDragging(null);
+                        }}
+                        onDragEnd={() => {
+                          clearHoverReorder();
+                          setDragging(null);
+                        }}
                       />
                     ))}
                   </div>
@@ -486,7 +788,7 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
         </div>
 
         {/* Live preview */}
-        <div className="flex w-full flex-none flex-col bg-bg3 lg:w-[480px]">
+        <div className="flex w-full flex-none flex-col bg-bg3 lg:w-[560px] xl:w-[640px]">
           <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
             <SectionLabel>PREVIEW · PORTFÓLIO</SectionLabel>
             <span className="font-mono text-[11px] text-pos">● ao vivo</span>
@@ -549,24 +851,53 @@ export function ProfileBuilder({ profileId }: { profileId: string }) {
 }
 
 function ToggleRow({
+  rowRef,
   kind,
   item,
   included,
   onToggle,
+  dragging,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
 }: {
+  rowRef: (node: HTMLDivElement | null) => void;
   kind: InventoryKind;
   item: AnyItem;
   included: boolean;
   onToggle: () => void;
+  dragging: boolean;
+  onDragStart: (event: DragEvent<HTMLDivElement>) => void;
+  onDragOver: (event: DragEvent<HTMLDivElement>) => void;
+  onDrop: (event: DragEvent<HTMLDivElement>) => void;
+  onDragEnd: () => void;
 }) {
   const { title, meta } = describeItem(kind, item);
   return (
     <div
+      ref={rowRef}
+      draggable={included}
+      onDragStart={included ? onDragStart : undefined}
+      onDragOver={included ? onDragOver : undefined}
+      onDrop={included ? onDrop : undefined}
+      onDragEnd={included ? onDragEnd : undefined}
       className={[
-        "flex items-center gap-3 rounded-[10px] border px-3.5 py-2.5",
+        "flex items-center gap-3 rounded-[10px] border px-3.5 py-2.5 transition-[opacity,background-color,border-color]",
         included ? "border-border bg-bg2" : "border-dashed border-border opacity-60",
+        dragging ? "opacity-40" : "",
       ].join(" ")}
     >
+      <span
+        className={[
+          "flex-none select-none font-mono text-[15px] leading-none text-text3",
+          included ? "cursor-grab active:cursor-grabbing" : "cursor-not-allowed",
+        ].join(" ")}
+        title={included ? "Arraste para reordenar" : "Inclua para reordenar"}
+        aria-hidden="true"
+      >
+        ::
+      </span>
       <span
         className="h-7 w-1.5 flex-none rounded-[4px]"
         style={{ background: included ? "var(--accent)" : "var(--text2)" }}

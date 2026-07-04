@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { useState } from "react";
 import { Card } from "@/components/ui/Card";
@@ -56,8 +57,12 @@ export function ProfilesList({ publicOnly = false }: { publicOnly?: boolean }) {
         />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {profiles.map((p) => (
-            <Card key={p.id} className="flex flex-col p-4">
+          {profiles.map((p, index) => (
+            <Card
+              key={p.id}
+              className="rh-reveal flex flex-col p-4"
+              style={{ "--rh-delay": `${index * 45}ms` } as CSSProperties}
+            >
               <div className="flex items-start justify-between gap-2">
                 <Link
                   href={`/perfis/${p.id}`}

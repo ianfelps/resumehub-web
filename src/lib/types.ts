@@ -31,7 +31,6 @@ export enum LanguageProficiency {
 
 export interface AuthResponse {
   accessToken: string;
-  refreshToken: string;
   accessTokenExpiresAt: string; // ISO datetime
 }
 

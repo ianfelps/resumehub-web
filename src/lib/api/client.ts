@@ -19,11 +19,16 @@ function notifyAuthExpired() {
 }
 
 /** Bare client without interceptors — used for the refresh call itself. */
-const bare = axios.create({ baseURL, headers: { "Content-Type": "application/json" } });
+const bare = axios.create({
+  baseURL,
+  withCredentials: true,
+  headers: { "Content-Type": "application/json" },
+});
 
 /** Main client: injects the Bearer token and refreshes once on 401. */
 export const api: AxiosInstance = axios.create({
   baseURL,
+  withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
 
@@ -39,11 +44,9 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 let refreshPromise: Promise<AuthResponse> | null = null;
 
 async function refreshTokens(): Promise<AuthResponse> {
-  const tokens = getTokens();
-  if (!tokens?.refreshToken) throw new Error("No refresh token");
   if (!refreshPromise) {
     refreshPromise = bare
-      .post<AuthResponse>("/auth/refresh", { refreshToken: tokens.refreshToken })
+      .post<AuthResponse>("/auth/refresh")
       .then((res) => {
         setTokens(res.data);
         return res.data;
