@@ -23,14 +23,16 @@ export default function ConfiguracoesPage() {
       </p>
 
       <div className="grid items-start gap-4 lg:grid-cols-[1.5fr_1fr]">
-        <div data-tour="config-form">
+        <div className="rh-reveal" data-tour="config-form">
           <AccountProfileForm />
         </div>
 
         <div className="flex flex-col gap-4">
-          <ChangePasswordForm />
+          <div className="rh-reveal [--rh-delay:45ms]">
+            <ChangePasswordForm />
+          </div>
 
-          <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
+          <Card className="rh-reveal flex flex-wrap items-center justify-between gap-3 p-5 [--rh-delay:90ms]">
             <div>
               <SectionLabel className="mb-1">APARÊNCIA</SectionLabel>
               <p className="text-[12.5px] text-text2">Tema claro ou escuro.</p>
@@ -38,7 +40,7 @@ export default function ConfiguracoesPage() {
             <ThemeToggle />
           </Card>
 
-          <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
+          <Card className="rh-reveal flex flex-wrap items-center justify-between gap-3 p-5 [--rh-delay:135ms]">
             <div>
               <SectionLabel className="mb-1">TUTORIAL</SectionLabel>
               <p className="text-[12.5px] text-text2">
@@ -50,7 +52,7 @@ export default function ConfiguracoesPage() {
             </Button>
           </Card>
 
-          <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
+          <Card className="rh-reveal flex flex-wrap items-center justify-between gap-3 p-5 [--rh-delay:180ms]">
             <div>
               <SectionLabel className="mb-1">SESSÃO</SectionLabel>
               <p className="text-[12.5px] text-text2">Encerrar a sessão neste dispositivo.</p>
@@ -61,7 +63,9 @@ export default function ConfiguracoesPage() {
             </Button>
           </Card>
 
-          <DeleteAccountForm />
+          <div className="rh-reveal [--rh-delay:225ms]">
+            <DeleteAccountForm />
+          </div>
         </div>
       </div>
     </PageContainer>

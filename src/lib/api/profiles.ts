@@ -15,6 +15,16 @@ export const profilesApi = {
     const { data } = await api.get<ProfileResponse>(`/profiles/${id}`);
     return data;
   },
+  slugAvailability: async (
+    slug: string,
+    excludeProfileId?: string,
+  ): Promise<{ available: boolean }> => {
+    const { data } = await api.get<{ available: boolean }>(
+      "/profiles/slug-availability",
+      { params: { slug, excludeProfileId } },
+    );
+    return data;
+  },
   create: async (body: ProfileRequest): Promise<ProfileResponse> => {
     const { data } = await api.post<ProfileResponse>("/profiles", body);
     return data;

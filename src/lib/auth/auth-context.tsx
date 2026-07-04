@@ -10,7 +10,12 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { AUTH_EXPIRED_EVENT } from "@/lib/api/client";
-import { login as loginApi, register as registerApi } from "@/lib/api/auth";
+import {
+  login as loginApi,
+  logout as logoutApi,
+  refresh as refreshApi,
+  register as registerApi,
+} from "@/lib/api/auth";
 import {
   clearTokens,
   getTokens,
@@ -62,20 +67,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<AuthContextValue["status"]>("loading");
 
-  // Hydrate from any persisted session on mount (localStorage is client-only).
+  // Hydrate from local access token or recover through the HttpOnly refresh cookie.
   useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
-    const tokens = getTokens();
-    if (tokens && hasValidSession()) {
-      setUser(readUserFromToken(tokens.accessToken));
-      setStatus("authenticated");
-    } else {
-      setStatus("unauthenticated");
+    let cancelled = false;
+    async function hydrate() {
+      const tokens = getTokens();
+      if (tokens && hasValidSession()) {
+        if (cancelled) return;
+        setUser(readUserFromToken(tokens.accessToken));
+        setStatus("authenticated");
+        return;
+      }
+
+      try {
+        const refreshed = await refreshApi();
+        if (cancelled) return;
+        setTokens(refreshed);
+        setUser(readUserFromToken(refreshed.accessToken));
+        setStatus("authenticated");
+      } catch {
+        if (cancelled) return;
+        clearTokens();
+        setStatus("unauthenticated");
+      }
     }
-    /* eslint-enable react-hooks/set-state-in-effect */
+
+    void hydrate();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const logout = useCallback(() => {
+    void logoutApi().catch(() => undefined);
     clearTokens();
     setUser(null);
     setStatus("unauthenticated");

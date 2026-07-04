@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
@@ -9,11 +10,12 @@ import { formatLongDate } from "@/lib/format";
 import { useProfiles } from "@/lib/query/hooks";
 import type { ProfileResponse } from "@/lib/types";
 
-function Row({ profile }: { profile: ProfileResponse }) {
+function Row({ profile, index }: { profile: ProfileResponse; index: number }) {
   return (
     <Link
       href={`/perfis/${profile.id}`}
-      className="grid grid-cols-[2fr_1fr_1fr] items-center gap-3 border-b border-border px-4 py-3.5 last:border-b-0 hover:bg-bg3/50 sm:px-5"
+      className="rh-reveal grid grid-cols-[2fr_1fr_1fr] items-center gap-3 border-b border-border px-4 py-3.5 last:border-b-0 hover:bg-bg3/50 sm:px-5"
+      style={{ "--rh-delay": `${index * 40}ms` } as CSSProperties}
     >
       <div className="min-w-0">
         <div className="truncate text-[13.5px] font-semibold">
@@ -71,8 +73,8 @@ export function ProfilesTable() {
             <span>STATUS</span>
             <span className="text-right sm:text-left">ATUALIZADO</span>
           </div>
-          {data.map((p) => (
-            <Row key={p.id} profile={p} />
+          {data.map((p, index) => (
+            <Row key={p.id} profile={p} index={index} />
           ))}
         </Card>
       ) : (

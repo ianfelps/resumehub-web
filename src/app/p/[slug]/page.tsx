@@ -8,6 +8,8 @@ export const dynamic = "force-dynamic";
 
 type Params = { slug: string };
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 export async function generateMetadata({
   params,
 }: {
@@ -15,12 +17,30 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const resume = await getPublicResume(slug).catch(() => null);
-  if (!resume) return { title: "Portfólio não encontrado · ResumeHub" };
+  if (!resume) return { title: "Portfolio nao encontrado · ResumeHub" };
+
   const who = resume.owner.fullName ?? resume.name;
+  const title = `${who} · Portfolio`;
+  const description =
+    resume.summary ?? resume.owner.headline ?? `Portfolio de ${who}.`;
+  const url = new URL(`/p/${slug}`, siteUrl).toString();
+
   return {
-    title: `${who} · Portfólio`,
-    description:
-      resume.summary ?? resume.owner.headline ?? `Portfólio de ${who}.`,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: "profile",
+      siteName: "ResumeHub",
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+    },
   };
 }
 

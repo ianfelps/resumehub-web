@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/Button";
@@ -24,11 +25,13 @@ function ItemRow({
   item,
   onEdit,
   hideSubtitle,
+  index = 0,
 }: {
   kind: InventoryKind;
   item: AnyItem;
   onEdit: () => void;
   hideSubtitle?: boolean;
+  index?: number;
 }) {
   const { title, subtitle: rawSubtitle, meta } = describeItem(kind, item);
   const subtitle = hideSubtitle ? undefined : rawSubtitle;
@@ -36,7 +39,8 @@ function ItemRow({
     <button
       type="button"
       onClick={onEdit}
-      className="flex w-full items-center gap-3.5 rounded-[11px] border border-border bg-bg2 px-4 py-3 text-left hover:border-accent/40"
+      className="rh-reveal flex w-full items-center gap-3.5 rounded-[11px] border border-border bg-bg2 px-4 py-3 text-left hover:border-accent/40"
+      style={{ "--rh-delay": `${index * 35}ms` } as CSSProperties}
     >
       <InitialsTile className="h-9 w-9">{initials(title)}</InitialsTile>
       <div className="min-w-0 flex-1">
@@ -58,15 +62,18 @@ function ItemRow({
 function ProjectCard({
   item,
   onEdit,
+  index = 0,
 }: {
   item: InventoryShapes["projects"]["response"];
   onEdit: () => void;
+  index?: number;
 }) {
   return (
     <button
       type="button"
       onClick={onEdit}
-      className="flex flex-col rounded-[11px] border border-border bg-bg2 px-4 py-3.5 text-left hover:border-accent/40"
+      className="rh-reveal flex flex-col rounded-[11px] border border-border bg-bg2 px-4 py-3.5 text-left hover:border-accent/40"
+      style={{ "--rh-delay": `${index * 35}ms` } as CSSProperties}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="text-[13.5px] font-semibold leading-snug">
@@ -112,13 +119,14 @@ function SkillGroups({
             <h2 className="font-mono text-[11px] uppercase tracking-wider text-text2">
               {skillCategoryLabels[category]} · {group.length}
             </h2>
-            {group.map((it) => (
+            {group.map((it, index) => (
               <ItemRow
                 key={it.id}
                 kind="skills"
                 item={it}
                 onEdit={() => onEdit(it)}
                 hideSubtitle
+                index={index}
               />
             ))}
           </section>
@@ -209,8 +217,13 @@ export function CofreView() {
         />
       ) : active === "projects" ? (
         <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-          {(items as InventoryShapes["projects"]["response"][]).map((it) => (
-            <ProjectCard key={it.id} item={it} onEdit={() => openEdit(it)} />
+          {(items as InventoryShapes["projects"]["response"][]).map((it, index) => (
+            <ProjectCard
+              key={it.id}
+              item={it}
+              onEdit={() => openEdit(it)}
+              index={index}
+            />
           ))}
         </div>
       ) : active === "skills" ? (
@@ -220,12 +233,13 @@ export function CofreView() {
         />
       ) : (
         <div className="flex flex-col gap-2">
-          {items.map((it) => (
+          {items.map((it, index) => (
             <ItemRow
               key={it.id}
               kind={active}
               item={it}
               onEdit={() => openEdit(it)}
+              index={index}
             />
           ))}
         </div>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
 
 const plexSans = IBM_Plex_Sans({
   variable: "--font-plex-sans",
@@ -39,6 +40,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
+        <RevealOnScroll />
         <Providers>{children}</Providers>
       </body>
     </html>

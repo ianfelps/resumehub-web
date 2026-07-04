@@ -21,10 +21,10 @@ src/
     layout/     Sidebar, Topbar, MobileNav, AppShell (guard), ThemeToggle
     dashboard/ · cofre/ · perfis/ · resume/   features
   lib/
-    api/        client axios (Bearer + refresh em 401), endpoints por recurso
-    auth/       token-store (localStorage) + AuthProvider
+    api/        client axios (Bearer + refresh cookie em 401), endpoints por recurso
+    auth/       access token + AuthProvider (refresh token é cookie HttpOnly)
     query/      QueryClient, query-keys e hooks (CRUD genérico do inventário)
-    types.ts    espelho dos DTOs da API · enums.ts · format.ts
+    types.ts    tipos usados pela UI · api/schema.ts gerado do OpenAPI
 ```
 
 Princípios: camada de API tipada espelhando os DTOs do backend, estado de servidor
@@ -44,6 +44,8 @@ CSS variables com toggle sem flash (script inline no root layout).
 ```bash
 cp .env.example .env.local
 # NEXT_PUBLIC_API_BASE_URL aponta para a API, incluindo o sufixo /api
+# NEXT_PUBLIC_SITE_URL aponta para a origem pública do front
+# NEXT_PUBLIC_SENTRY_DSN e SENTRY_DSN são opcionais
 ```
 
 ## Rodar
@@ -53,6 +55,8 @@ npm install
 npm run dev        # http://localhost:3000
 npm run build      # build de produção (Turbopack) + checagem de tipos
 npm run lint       # ESLint (flat config)
+npm run test       # Vitest
+npm run typegen    # gera src/lib/api/schema.ts a partir da API local
 ```
 
 ## Deploy (Vercel)
@@ -68,11 +72,11 @@ no Render para o fetch server-side de `/p/[slug]`).
    Como é `NEXT_PUBLIC_*`, é embutida no build — refaça o deploy ao alterar.
 3. Na **API** (Render), aponte `Cors__WebOrigin` para a origem da Vercel
    (ex.: `https://resumehub.vercel.app`) senão as chamadas do browser tomam CORS.
-4. Build: `next build` · Output: padrão do Next. Sem ajustes extras.
+4. Build: `npm run lint && npm run build` (configurado no `vercel.json`) · Output: padrão do Next.
 
 ## Fluxo end-to-end
 
-1. `/register` cria a conta e já autentica (tokens em localStorage).
+1. `/register` cria a conta e já autentica (access token no cliente; refresh token em cookie HttpOnly).
 2. **Cofre**: adicione experiências, projetos, skills, idiomas, formação e cursos.
 3. **Perfis → Novo perfil**: abre a Montagem; ligue/desligue itens do cofre e veja
    o currículo montar ao vivo. **Publicar** expõe o perfil.
@@ -81,5 +85,12 @@ no Render para o fetch server-side de `/p/[slug]`).
 ## Autenticação
 
 Chamadas diretas do browser para a API. O access token é injetado pelo interceptor
-do Axios; em `401` há uma tentativa única de `refresh` (single-flight) e, se falhar,
-a sessão é limpa e o usuário é redirecionado para `/login`.
+do Axios; em `401` há uma tentativa única de `refresh` (single-flight) usando o
+cookie HttpOnly da API. Se falhar, a sessão é limpa e o usuário é redirecionado
+para `/login`. `POST /api/auth/logout` invalida o refresh token no backend.
+
+## Contratos
+
+Com a API rodando em `http://localhost:5087`, execute `npm run typegen` para gerar
+`src/lib/api/schema.ts` a partir de `/openapi/v1.json`. Esse arquivo é gerado e
+não deve ser editado manualmente.
