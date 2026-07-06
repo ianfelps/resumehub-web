@@ -86,6 +86,14 @@ export function useProfileItems(id: string) {
   });
 }
 
+export function useProfileAnalysis(id: string) {
+  return useQuery({
+    queryKey: queryKeys.profileAnalysis(id),
+    queryFn: () => profilesApi.getAnalysis(id),
+    enabled: Boolean(id),
+  });
+}
+
 export function useCreateProfile() {
   const qc = useQueryClient();
   return useMutation({
