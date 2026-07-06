@@ -20,7 +20,7 @@ export const navItems: NavItem[] = [
   { href: "/cofre", label: "Cofre", icon: VaultIcon, enabled: true },
   { href: "/perfis", label: "Perfis", icon: LayersIcon, enabled: true },
   { href: "/portfolio", label: "Portfólio", icon: GlobeIcon, enabled: true },
-  { href: "/analises", label: "Análises", icon: ChartIcon, enabled: false },
+  { href: "/analises", label: "Análises", icon: ChartIcon, enabled: true },
   {
     href: "/configuracoes",
     label: "Configurações",

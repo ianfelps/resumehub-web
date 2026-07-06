@@ -186,11 +186,45 @@ body {
   animation: rh-status-pulse 1.8s ease-in-out infinite;
 }
 
+/* ---- Analysis loading (scanning a résumé) ---- */
+
+@keyframes rh-spin {
+  to { transform: rotate(360deg); }
+}
+.rh-spin {
+  animation: rh-spin 0.9s linear infinite;
+}
+
+@keyframes rh-scan {
+  0% { top: 3%; opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { top: 97%; opacity: 0; }
+}
+.rh-scanline {
+  animation: rh-scan 2.1s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes rh-shimmer {
+  0% { background-position: 150% 0; }
+  100% { background-position: -150% 0; }
+}
+/* Light-gray shimmer for bars on the white "paper" skeleton (theme-independent). */
+.rh-shimmer-doc {
+  background: linear-gradient(90deg, #eef1f5 25%, #dfe5ee 37%, #eef1f5 63%);
+  background-size: 200% 100%;
+  animation: rh-shimmer 1.6s linear infinite;
+  border-radius: 5px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rh-reveal,
   .rh-typewriter,
   .rh-status-dot,
-  .rh-skeleton {
+  .rh-skeleton,
+  .rh-spin,
+  .rh-scanline,
+  .rh-shimmer-doc {
     animation: none !important;
   }
 

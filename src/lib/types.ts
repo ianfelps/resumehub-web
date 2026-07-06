@@ -230,6 +230,34 @@ export interface PublicResumeResponse {
   courses: CourseResponse[];
 }
 
+// ---- ATS analysis ----
+
+export type AnalysisStatus = "pass" | "warn" | "fail";
+
+export interface AnalysisCheck {
+  id: string;
+  label: string;
+  category: string;
+  status: AnalysisStatus;
+  points: number;
+  maxPoints: number;
+  hint?: string | null;
+}
+
+export interface KeywordStat {
+  term: string;
+  count: number;
+}
+
+export interface ProfileAnalysisResponse {
+  score: number; // 0..100
+  rating: string;
+  checks: AnalysisCheck[];
+  topKeywords: KeywordStat[];
+  /** The assembled resume that was analyzed, for previewing with highlights. */
+  resume: PublicResumeResponse;
+}
+
 /** The six inventory resource kinds, used to parameterize generic CRUD. */
 export type InventoryKind =
   | "experiences"

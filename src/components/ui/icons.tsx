@@ -16,7 +16,9 @@ import {
   Plus,
   Search,
   Settings,
+  TriangleAlert,
   Vault,
+  X,
 } from "lucide-react";
 
 /** Wrap a lucide icon with the app's default size/stroke; props still override. */
@@ -40,3 +42,5 @@ export const ExternalIcon = icon(ExternalLink);
 export const EyeIcon = icon(Eye);
 export const EyeOffIcon = icon(EyeOff);
 export const CheckIcon = icon(Check);
+export const AlertIcon = icon(TriangleAlert);
+export const XIcon = icon(X);

@@ -1,5 +1,6 @@
 import { api } from "@/lib/api/client";
 import type {
+  ProfileAnalysisResponse,
   ProfileItemsRequest,
   ProfileItemsResponse,
   ProfileRequest,
@@ -49,5 +50,11 @@ export const profilesApi = {
     });
     const pageCount = Number(headers["x-page-count"]) || 0;
     return { blob: data, pageCount };
+  },
+  getAnalysis: async (id: string): Promise<ProfileAnalysisResponse> => {
+    const { data } = await api.get<ProfileAnalysisResponse>(
+      `/profiles/${id}/analysis`,
+    );
+    return data;
   },
 };
