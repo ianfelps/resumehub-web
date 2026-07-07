@@ -51,6 +51,13 @@ export const tourSteps: TourStep[] = [
     placement: "auto",
   },
   {
+    route: "/analises",
+    selector: '[data-tour="analises-intro"]',
+    title: "Meça seu currículo",
+    body: "Escolha um perfil e receba uma nota ATS de 0 a 100, com os pontos a melhorar destacados direto na prévia do currículo.",
+    placement: "bottom",
+  },
+  {
     route: "/configuracoes",
     selector: '[data-tour="config-form"]',
     title: "Ajuste sua conta",

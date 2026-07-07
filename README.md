@@ -35,6 +35,7 @@ CSS variables com toggle sem flash (script inline no root layout).
 ## Pré-requisitos
 
 - Node.js 20.9+
+- [pnpm](https://pnpm.io) 10+ (habilite via `corepack enable`)
 - A **API** rodando (ver `../resumehub-api`). Por padrão em `http://localhost:5087`.
 - A API precisa de **CORS** liberado para a origem do front (`Cors__WebOrigin`,
   default `http://localhost:3000`) — já configurado no projeto da API.
@@ -51,12 +52,12 @@ cp .env.example .env.local
 ## Rodar
 
 ```bash
-npm install
-npm run dev        # http://localhost:3000
-npm run build      # build de produção (Turbopack) + checagem de tipos
-npm run lint       # ESLint (flat config)
-npm run test       # Vitest
-npm run typegen    # gera src/lib/api/schema.ts a partir da API local
+pnpm install
+pnpm dev           # http://localhost:3000
+pnpm build         # build de produção (Turbopack) + checagem de tipos
+pnpm lint          # ESLint (flat config)
+pnpm test          # Vitest
+pnpm typegen       # gera src/lib/api/schema.ts a partir da API local
 ```
 
 ## Deploy (Vercel)
@@ -72,7 +73,7 @@ no Render para o fetch server-side de `/p/[slug]`).
    Como é `NEXT_PUBLIC_*`, é embutida no build — refaça o deploy ao alterar.
 3. Na **API** (Render), aponte `Cors__WebOrigin` para a origem da Vercel
    (ex.: `https://resumehub.vercel.app`) senão as chamadas do browser tomam CORS.
-4. Build: `npm run lint && npm run build` (configurado no `vercel.json`) · Output: padrão do Next.
+4. Build: `pnpm run lint && pnpm run build` (configurado no `vercel.json`) · Output: padrão do Next.
 
 ## Fluxo end-to-end
 
@@ -91,6 +92,6 @@ para `/login`. `POST /api/auth/logout` invalida o refresh token no backend.
 
 ## Contratos
 
-Com a API rodando em `http://localhost:5087`, execute `npm run typegen` para gerar
+Com a API rodando em `http://localhost:5087`, execute `pnpm typegen` para gerar
 `src/lib/api/schema.ts` a partir de `/openapi/v1.json`. Esse arquivo é gerado e
 não deve ser editado manualmente.

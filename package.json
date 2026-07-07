@@ -2,6 +2,7 @@
   "name": "resumehub-web",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.32.1",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -36,7 +37,14 @@
     "typescript": "^5",
     "vitest": "^4.1.9"
   },
-  "overrides": {
-    "postcss": "8.5.16"
+  "pnpm": {
+    "overrides": {
+      "postcss": "8.5.16"
+    },
+    "onlyBuiltDependencies": [
+      "@sentry/cli",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }

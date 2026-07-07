@@ -28,7 +28,7 @@ export function AnalysisView() {
 
   return (
     <PageContainer>
-      <div className="mb-5">
+      <div className="mb-5" data-tour="analises-intro">
         <h1 className="text-[20px] font-semibold tracking-tight">Análises</h1>
         <p className="mt-0.5 text-[12.5px] text-text2">
           Teste ATS geral do seu currículo — uma nota de 0 a 100 a partir do PDF
